@@ -45,6 +45,11 @@ int main(void)
 	// Creates and initializes a buffer object's data store.
 	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 
+	// Enable the position vertex attribute data
+	glEnableVertexAttribArray(0);
+	// Define a position vertex attribute data
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{

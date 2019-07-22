@@ -101,7 +101,7 @@ However, for modern OpenGL, there are a lot more setups you need to do to draw a
 
 OpenGL specifically operates like a **state machine**. You set a series of states and then if you want to draw a triangle, which is very contextual, you do not need to pass all OpenGL needs to draw a triangle, in fact, OpenGL knows what it needs to draw a triangle because it is part of the state. **Basically, you just need to tell OpenGL to select a buffer, then select a shader and finally draw the triangle.** Based on which buffer and which shader you've selected, that's going to determine what triangle gets drawn and where etc.
 
-Since our triangle will not morph and the data will not change in game, we just put the buffer outside the game loop, here is the code to *give OpenGL the triangle data*, you can go to [OpenGL API Documentation](docs.gl) for details of these function usage:
+Since our triangle will not morph and the data will not change in game, we just put the buffer outside the game loop, here is the code to *give OpenGL the triangle data*, you can go to [OpenGL API Documentation](docs.gl) for those detail usages:
 
 ```cpp
 	float positions[6] = {
@@ -129,4 +129,25 @@ glDrawArrays(GL_TRIANGLES, 0, 3);
 Due to the state machine mechanism, if you bind no buffer by calling `glBindBuffer(GL_ARRAY_BUFFER, 0);`, it will not draw the triangle because you select something else(no buffer). Just imagine the layers in PS, if you select a layer and then draw something on that layer using a paint brush, it is going to affect that layer; however if you have nothing selected, obviously it is not going to affect the layer you are going to draw on.
 
 The triangle will not show up when you run the program because we have not created a shader yet.
+
+## Vertex Attributes and Layouts in OpenGL
+
+A vertex is just more than a position, it contains many other data including texture coordinates, normals, colors, tangents etc., those data are called attributes. In order to tell OpenGL what the layout of our buffer actually is, we can call `glVertexAttribPointer()`, you can go to [glVertexAttribPointer](http://docs.gl/gl4/glVertexAttribPointer) for its detail usage.
+
+Parameter notes:
+
+* Stride - It is **the amount of bytes between each vertex**. Imagine that we have a pointer at the beginning to the buffer, and we go 32 bytes into it and we should be at the very start of the next vertex.
+
+  ![image](https://github.com/hls333555/OpenGL/blob/master/images/Stride.jpg)
+
+* Pointer - It is **the offset of current attribute in bytes in a vertex**. In the case illustrated above, the offset of Position attribute would be 0, the offset of TextureCoordinate attribute would 12, while the offset of Normal attribute would be 20.
+
+Below are the code to enable and define a vertex attribute data:
+
+```cpp
+	// Enable the position vertex attribute data
+	glEnableVertexAttribArray(0); // Do not forget this!
+	// Define a position vertex attribute data
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
+```
 
