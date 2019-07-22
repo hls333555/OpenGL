@@ -29,13 +29,13 @@ Here are the main steps:
 
   * For the remaining platform specific issues, you can copy the function signature name for short and search it online, for example, "RegisterDeviceNotificationW", you will find library requirements for this function in MSDN pages like this:
 
-    ![image](https://github.com/hls333555/OpenGL/tree/master/images/MSDN.png)
+    ![image](https://github.com/hls333555/OpenGL/blob/master/images/MSDN.png)
 
     Add that to *Additional Dependencies* and the related issues should go away
 
 * After fixing all other issues using the above method, you will see a black window like below when you run the program:
 
-  ![image](https://github.com/hls333555/OpenGL/tree/master/images/OpenGL_window.png)
+  ![image](https://github.com/hls333555/OpenGL/blob/master/images/OpenGL_window.png)
 
 ## Using modern OpenGL
 
@@ -60,7 +60,7 @@ The followings are the issues you may encounter:
 
   You can dig into this by navigating to its definition in glew.h where you will find a `GLEWAPI` macro defining the return type, after jumping to its definition, you will find the reason that you did not define the `GLEW_STATIC` macro.
 
-  ![image](https://github.com/hls333555/OpenGL/tree/master/images/GLEW_STATIC.png)
+  ![image](https://github.com/hls333555/OpenGL/blob/master/images/GLEW_STATIC.png)
 
   To fix this, just add `GLEW_STATIC` to *Preprocessor Definitions*
 
