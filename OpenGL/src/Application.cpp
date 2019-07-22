@@ -22,18 +22,37 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	// This MUST be called after a valid OpenGL rendering context being created
 	if (glewInit() != GLEW_OK)
 	{
 		std::cout << "Glew Init Error!" << std::endl;
 	}
 
+	// Print OpenGL version in current graphics driver
 	std::cout << glGetString(GL_VERSION) << std::endl;
+
+	float positions[6] = {
+		-0.5f, -0.5f,
+		 0.f,   0.5f,
+		 0.5f, -0.5f
+	};
+
+	unsigned int buffer;
+	// Generate buffer object names
+	glGenBuffers(1, &buffer);
+	// Bind a named buffer object
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	// Creates and initializes a buffer object's data store.
+	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Issue a drawcall
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
