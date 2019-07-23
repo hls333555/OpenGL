@@ -2,6 +2,45 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+static void ParseShader(const std::string& filePath, std::string& vertexShaderSource, std::string& fragmentShaderSource)
+{
+	std::ifstream stream(filePath);
+
+	enum class ShaderType
+	{
+		NONE = -1,
+		VERTEX = 0,
+		FRAGMENT = 1
+	};
+
+	std::string line;
+	std::stringstream ss[2];
+	ShaderType type = ShaderType::NONE;
+	while (getline(stream, line))
+	{
+		if (line.find("#shader") != std::string::npos)
+		{
+			if (line.find("vertex") != std::string::npos)
+			{
+				type = ShaderType::VERTEX;
+			}
+			else if (line.find("fragment") != std::string::npos)
+			{
+				type = ShaderType::FRAGMENT;
+			}
+		}
+		else
+		{
+			ss[(int)type] << line << "\n";
+		}
+	}
+	vertexShaderSource = ss[0].str();
+	fragmentShaderSource = ss[1].str();
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -110,29 +149,11 @@ int main(void)
 	// Define a position vertex attribute data
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
 
-	// Use C++11 raw string literals
-	std::string vertexShaderSource = R"(
-		#version 330 core
-
-		// The location of the position vertex attribute data is 0
-		layout(location = 0) in vec4 position;
-		void main()
-		{
-			gl_Position = position;
-		}	
-	)";
-
-	std::string fragmentShaderSource = R"(
-		#version 330 core
-
-		layout(location = 0) out vec4 color;
-		void main()
-		{
-			color = vec4(0.f, 1.f, 1.f, 1.f);
-		}	
-	)";
-	
-	unsigned int program = CreateShader(vertexShaderSource, fragmentShaderSource);
+	std::string vsSource, fsSource;
+	// Read shaders from shader file
+	ParseShader("res/shaders/Basic.shader", vsSource, fsSource);
+	// Create shader
+	unsigned int program = CreateShader(vsSource, fsSource);
 	// Install the program object as part of current rendering state
 	glUseProgram(program);
 
