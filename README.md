@@ -328,3 +328,53 @@ That's it! Here is the final result:
 
 ![image](https://github.com/hls333555/OpenGL/blob/master/images/Square_window.png)
 
+## Dealing with Errors in OpenGL
+
+There are mainly two ways to deal with errors in OpenGL:
+
+* `glGetError()`: which is **compatible with all OpenGL versions** and works in a very simple way: whenever we call an OpenGL function, if an error were to occur, a flag gets set internally in OpenGL's memory, when we call `glGetError()`, that gives our error flag.
+
+  **The typical workflow with `glGetError()` is, first of all, before each OpenGL function call, clear all pending errors via a while loop calling `glGetError()`, then call the certain OpenGL function you want to debug, and then call `glGetError()` again, this can retrieve any errors that generated in the previous function call.**
+
+  > To allow for distributed implementations, there may be several error flags. If any single error flag has recorded an error, the value of that flag is returned and that flag is reset to `GL_NO_ERROR` when `glGetError` is called. If more than one flag has recorded an error, `glGetError` returns and clears an arbitrary error flag value. Thus, `glGetError` should always be called in a loop, until it returns `GL_NO_ERROR`, if all error flags are to be reset.
+
+* `glDebugMessageCallback()`: which is **only available since OpenGL 4.3** and allows us to specify a function pointer to OpenGL and OpenGL will call that function when an error occurs. This is much better than `glGetError()` obviously.
+
+Here, we use the first method to track our error:
+
+```cpp
+#define ASSERT(x) if(!x) __debugbreak();
+// You should ensure "DEBUG" exists in PreprocessorDefinations of Debug configuration
+#ifdef DEBUG
+#define GLCALL(x) GLClearError();\
+	x;\
+	ASSERT(GLLogCall(__FILE__, #x, __LINE__))
+#else
+#define GLCALL(x) x
+#endif
+
+static void GLClearError()
+{
+    // Loop to clear all previous errors
+	while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* file, const char* function, int line)
+{
+	while (unsigned int error = glGetError())
+	{
+		std::cout << "OpenGL error: " << error << " in " << file << ", " << function << ", " << line << std::endl;
+		return false;
+	}
+	return true;
+}
+```
+
+To use this for an OpenGL function call, just wrap those functions with `GLCALL()` like below:
+
+```cpp
+GLCALL(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+```
+
+When pressing F5 in debug mode, you will see a breakpoint being triggered if an error occurs in that call.
+

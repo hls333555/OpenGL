@@ -6,6 +6,32 @@
 #include <string>
 #include <sstream>
 
+#define ASSERT(x) if(!x) __debugbreak();
+// You should ensure "DEBUG" exists in PreprocessorDefinations of Debug configuration
+#ifdef DEBUG
+#define GLCALL(x) GLClearError();\
+	x;\
+	ASSERT(GLLogCall(__FILE__, #x, __LINE__))
+#else
+#define GLCALL(x) x
+#endif
+
+static void GLClearError()
+{
+	// Loop to clear all previous errors
+	while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* file, const char* function, int line)
+{
+	while (unsigned int error = glGetError())
+	{
+		std::cout << "OpenGL error: " << error << " in " << file << ", " << function << ", " << line << std::endl;
+		return false;
+	}
+	return true;
+}
+
 static void ParseShader(const std::string& filePath, std::string& vertexShaderSource, std::string& fragmentShaderSource)
 {
 	std::ifstream stream(filePath);
