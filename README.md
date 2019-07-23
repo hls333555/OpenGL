@@ -110,19 +110,20 @@ float positions[6] = {
      0.5f, -0.5f
 };
 
-unsigned int buffer;
-// Generate buffer object names(id)
-glGenBuffers(1, &buffer);
-// Bind(select) a named buffer object
-glBindBuffer(GL_ARRAY_BUFFER, buffer);
-// Creates and initializes a buffer object's data store
-glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+// Vertex buffer object
+unsigned int vbo;
+// Generate vertex buffer object names
+glGenBuffers(1, &vbo);
+// Bind a named vertex buffer object
+glBindBuffer(GL_ARRAY_BUFFER, vbo);
+// Create and initialize a vertex buffer object's data store
+glBufferData(GL_ARRAY_BUFFER, 6* sizeof(float), positions, GL_STATIC_DRAW);
 ```
 
 Next is to *issue a drawcall to actually draw the triangle* by calling the following code inside the game loop:
 
 ```cpp
-// You can call glDrawElements() instead for index buffers
+// Issue a drawcall
 glDrawArrays(GL_TRIANGLES, 0, 3);
 ```
 
@@ -265,5 +266,65 @@ Here are the main steps on how to create a vertex shader:
   glDeleteProgram(program);
   ```
 
-  
+
+## Index Buffers in OpenGL
+
+Consider drawing a square, you need to draw two triangles which make up a square. If we draw it like below, you will notice that there are two vertices actually being drawn twice which is a waste of memory.
+
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Square.png)
+
+We can use index buffer to solve this. An index buffer is something that **allows to reuse existing vertices**.
+
+Here are the main steps:
+
+* Remove any duplicate vertices from the vertex array, now the array should look something like this:
+
+  ```cpp
+  float positions[] = {
+      -0.5f, -0.5f, // 0
+       0.5f, -0.5f, // 1
+       0.5f,  0.5f, // 2
+      -0.5f,  0.5f  // 3
+  };
+  ```
+
+* Add an index array which contains **index of vertex** according to the above vertex array to draw each triangle:
+
+  ```cpp
+  unsigned int indices[] = {
+      0, 1, 2,
+      2, 3, 0
+  };
+  ```
+
+* Send the index buffer to the GPU, note there are several differences from vertex buffer version:
+
+  ```cpp
+  // Index buffer object
+  unsigned int ibo;
+  // Generate index buffer object names
+  glGenBuffers(1, &ibo);
+  // Bind a named index buffer object
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+  // Create and initialize an index buffer object's data store.
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+  ```
+
+* Finally, replace
+
+  ```cpp
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+  ```
+
+  with:
+
+  ```cpp
+  // The count is actually the number of indices rather than vertices
+  // Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  ```
+
+That's it! Here is the final result:
+
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Square_window.png)
 

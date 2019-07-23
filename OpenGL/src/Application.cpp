@@ -130,24 +130,40 @@ int main(void)
 	// Print OpenGL version in current graphics driver
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
-	float positions[6] = {
-		-0.5f, -0.5f,
-		 0.f,   0.5f,
-		 0.5f, -0.5f
+	float positions[] = {
+		-0.5f, -0.5f, // 0
+		 0.5f, -0.5f, // 1
+		 0.5f,  0.5f, // 2
+		-0.5f,  0.5f  // 3
 	};
 
-	unsigned int buffer;
-	// Generate buffer object names
-	glGenBuffers(1, &buffer);
-	// Bind a named buffer object
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	// Creates and initializes a buffer object's data store.
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+	unsigned int indices[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	// Vertex buffer object
+	unsigned int vbo;
+	// Generate vertex buffer object names
+	glGenBuffers(1, &vbo);
+	// Bind a named vertex buffer object
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	// Create and initialize a vertex buffer object's data store
+	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 
 	// Enable the position vertex attribute data
 	glEnableVertexAttribArray(0);
 	// Define a position vertex attribute data
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
+
+	// Index buffer object
+	unsigned int ibo;
+	// Generate index buffer object names
+	glGenBuffers(1, &ibo);
+	// Bind a named index buffer object
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	// Create and initialize an index buffer object's data store
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	std::string vsSource, fsSource;
 	// Read shaders from shader file
@@ -164,7 +180,9 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Issue a drawcall
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		// The count is actually the number of indices rather than vertices
+		// Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
