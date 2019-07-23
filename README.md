@@ -67,10 +67,10 @@ The followings are the issues you may encounter:
 * If you put `glewInit()` above `glfwCreateWindow()`, and replace it with the following code to check whether GLEW has initialized successfully, you will see the error illustrated below:
 
   ```cpp
-  	if (glewInit() != GLEW_OK)
-  	{
-  		std::cout << "Glew Init Error!" << std::endl;
-  	}
+  if (glewInit() != GLEW_OK)
+  {
+      std::cout << "Glew Init Error!" << std::endl;
+  }
   ```
 
   If you take a look at the [GLEW Documentation](http://glew.sourceforge.net/basic.html), you will find the answer:
@@ -104,19 +104,19 @@ OpenGL specifically operates like a **state machine**. You set a series of state
 Since our triangle will not morph and the data will not change in game, we just put the buffer outside the game loop, here is the code to *give OpenGL the triangle data*, you can go to [OpenGL API Documentation](docs.gl) for those detail usages:
 
 ```cpp
-	float positions[6] = {
-		-0.5f, -0.5f,
-		 0.f,   0.5f,
-		 0.5f, -0.5f
-	};
+float positions[6] = {
+    -0.5f, -0.5f,
+     0.f,   0.5f,
+     0.5f, -0.5f
+};
 
-	unsigned int buffer;
-	// Generate buffer object names(id)
-	glGenBuffers(1, &buffer);
-	// Bind(select) a named buffer object
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	// Creates and initializes a buffer object's data store
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+unsigned int buffer;
+// Generate buffer object names(id)
+glGenBuffers(1, &buffer);
+// Bind(select) a named buffer object
+glBindBuffer(GL_ARRAY_BUFFER, buffer);
+// Creates and initializes a buffer object's data store
+glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 ```
 
 Next is to *issue a drawcall to actually draw the triangle* by calling the following code inside the game loop:
@@ -145,9 +145,125 @@ Parameter notes:
 Below are the code to enable and define a vertex attribute data:
 
 ```cpp
-	// Enable the position vertex attribute data
-	glEnableVertexAttribArray(0); // Do not forget this!
-	// Define a position vertex attribute data
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
+// Enable the position vertex attribute data
+glEnableVertexAttribArray(0); // Do not forget this!
+// Define a position vertex attribute data
+glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
 ```
+
+## How Shaders Work in OpenGL
+
+The most commonly used shaders are **vertex shaders** and **fragment shaders**(aka **pixel shaders**), there are also other types of shaders including tessellation shaders, geometry shaders etc. 
+
+For simplicity, when a drawcall is issued, the vertex shader will get called **once for each vertex that were trying to render**, then the fragment shader will get called **once for each pixel in the triangle that needs to get filled in**, then you will see the result on the screen.
+
+**The primary purpose of the vertex shader is to tell OpenGL where the vertex to be in the screen space.** It has nothing to do with color or lighting etc.
+
+**The primary purpose of the fragment shader is to determine which color the pixel is supposed to be.**
+
+## Writing a Shader in OpenGL
+
+Here are the main steps on how to create a vertex shader:
+
+### Shader Part
+
+* Construct a shader source, here we use C++11 raw string literals:
+
+  ```cpp
+  std::string vertexShaderSource = R"(
+  	#version 330 core
+  	
+  	// The location of the position vertex attribute data is 0
+  	layout(location = 0) in vec4 position;
+  	void main()
+  	{
+  		gl_Position = position;
+  	}
+  )";
+  ```
+
+* Create a shader object:
+
+  ```cpp
+  unsigned int vsId = glCreateShader(GL_VERTEX_SHADER);
+  ```
+
+* Load the shader source into the shader object:
+
+  ```cpp
+  const char* src = vertexShaderSource.c_str();
+  glShaderSource(vsId, 1, &src, nullptr);
+  ```
+
+* Compile the shader object:
+
+  ```cpp
+  glCompileShader(vsId);
+  
+  int result;
+  glGetShaderiv(vsId, GL_COMPILE_STATUS, &result);
+  if(result == GL_FALSE)
+  {
+      int length;
+      glGetShaderiv(vsId, GL_INFO_LOG_LENGTH, &length);
+      // Allocate on the stack dynamically
+      char* message = (char*)_malloca(length * sizeof(char));
+      // Return the information log for the shader object
+      glGetShaderInfoLog(vsId,length, &length, message);
+      std::cout << "Failed to compile vertex shader!" << std::endl;
+      std::cout << message << std::endl;
+      glDeleteShader(vsId);
+      return 0;
+  }
+  ```
+
+### Program Part
+
+* Create the program object:
+
+  ```cpp
+  unsigned int program = glCreateProgram();
+  ```
+
+* Attach shaders to the program object:
+
+  ```cpp
+  glAttachShader(program, vsId);
+  ```
+
+* Link the program:
+
+  ```cpp
+  glLinkProgram(program);
+  ```
+
+* Validate the program object:
+
+  ```cpp
+  // Check to see whether the executables contained in program can execute given the current OpenGL state
+  glValidateProgram(program);
+  
+  int result;
+  glGetProgramiv(program, GL_VALIDATE_STATUS, &result);
+  if(result == GL_FALSE)
+  {
+      std::cout << "Failed to validate program!" << std::endl;
+      return 0;
+  }
+  ```
+
+* Use the program object:
+
+  ```cpp
+  // Install the program object as part of current rendering state
+  glUseProgram(program); // Do not forget this!
+  ```
+
+* Delete the program object at last:
+
+  ```cpp
+  glDeleteProgram(program);
+  ```
+
+  
 
