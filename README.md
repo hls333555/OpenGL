@@ -97,7 +97,7 @@ However, for modern OpenGL, there are a lot more setups you need to do to draw a
 * Create a vertex buffer - array of bytes of GPU memory(VRAM)
 * Create a shader
 
-**The basic concept is that we define a bunch of data which represents the triangle and put it into the GPU's VRAM and then we want to issue a drawcall which is basically a draw command - read those data from VRAM and draw it on the screen, after that we need to tell the GPU how to interpret the data(interpret it as like a bunch of positions on the screen and draw them up into a triangle), that's what shader is.**
+**The basic concept is that we define a bunch of data which represents the triangle and put it into the GPU's VRAM and then we want to issue a draw call which is basically a draw command - read those data from VRAM and draw it on the screen, after that we need to tell the GPU how to interpret the data(interpret it as like a bunch of positions on the screen and draw them up into a triangle), that's what shader is.**
 
 OpenGL specifically operates like a **state machine**. You set a series of states and then if you want to draw a triangle, which is very contextual, you do not need to pass all OpenGL needs to draw a triangle, in fact, OpenGL knows what it needs to draw a triangle because it is part of the state. **Basically, you just need to tell OpenGL to select a buffer, then select a shader and finally draw the triangle.** Based on which buffer and which shader you've selected, that's going to determine what triangle gets drawn and where etc.
 
@@ -120,10 +120,10 @@ glBindBuffer(GL_ARRAY_BUFFER, vbo);
 glBufferData(GL_ARRAY_BUFFER, 6* sizeof(float), positions, GL_STATIC_DRAW);
 ```
 
-Next is to *issue a drawcall to actually draw the triangle* by calling the following code inside the game loop:
+Next is to *issue a draw call to actually draw the triangle* by calling the following code inside the game loop:
 
 ```cpp
-// Issue a drawcall
+// Issue a draw call
 glDrawArrays(GL_TRIANGLES, 0, 3);
 ```
 
@@ -156,7 +156,7 @@ glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)
 
 The most commonly used shaders are **vertex shaders** and **fragment shaders**(aka **pixel shaders**), there are also other types of shaders including tessellation shaders, geometry shaders etc. 
 
-For simplicity, when a drawcall is issued, the vertex shader will get called **once for each vertex that were trying to render**, then the fragment shader will get called **once for each pixel in the triangle that needs to get filled in**, then you will see the result on the screen.
+For simplicity, when a draw call is issued, the vertex shader will get called **once for each vertex that were trying to render**, then the fragment shader will get called **once for each pixel in the triangle that needs to get filled in**, then you will see the result on the screen.
 
 **The primary purpose of the vertex shader is to tell OpenGL where the vertex to be in the screen space.** It has nothing to do with color or lighting etc.
 
@@ -403,4 +403,77 @@ Here are the main steps to use uniforms in OpenGL:
 You can see an example in code using uniforms to achieve a flashing effect like below:
 
 ![image](https://github.com/hls333555/OpenGL/blob/master/images/Uniforms.gif)
+
+## Vertex Arrays in OpenGL
+
+**Vertex arrays are a way to bind vertex buffers with a certain specification for layout.** Here's what VAO is explained in [Vertex Array Objects](http://ogldev.atspace.co.uk/www/tutorial32/tutorial32.html):
+
+> The Vertex Array Object (a.k.a VAO) is a special type of object that encapsulates all the data that is associated with the vertex processor. Instead of containing the actual data, it holds references to the vertex buffers, the index buffer and the layout specification of the vertex itself. The advantage is that once you set up the VAO for a mesh you can bring in the entire mesh state by simply binding the VAO. After that you can render the mesh object and you don't need to worry about all of its state. The VAO remembers it for you. If your application needs to deal with meshes whose vertex layout slightly differs from one another the VAO takes care of it also. Just make sure to set up the correct layout when you create the VAO and forget about it. From now on it "sticks" to the VAO and becomes active whenever that VAO is used.
+
+For now, what we've done is we bind all the objects(program object, vbo, ibo) we have for one shader, one vertex buffer and one index buffer. If we have multiple objects(multiple vbos etc.), we will have to rebind everything we need for current draw every times(in the game loop):
+
+```cpp
+// Bind shader and set up uniforms
+glUseProgram(program);
+glUniform4f(location, r, 1.f, 1.f, 1.f);
+
+// Bind vertex buffer and set up the layout
+glBindBuffer(GL_ARRAY_BUFFER, vbo);
+glEnableVertexAttribArray(0);
+glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
+
+// Bind index buffer
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+```
+
+VAOs are actually what contain the state. If you utilize VAOs properly, for example, make a different VAO for each piece of geometry of each draw call, then what you need to do is to bind the VAO, that's it! Because VAO will contain a binding between the vertex buffer(s) and that vertex layout.
+
+Let's utilize VAO to rewrite the above code:
+
+* Add the following code before `glfwCreateWindow()` to use the core OpenGL profile:
+
+  ```cpp
+  // Use OpenGL 3.3
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  // Use core OpenGL profile which will not make VAO object 0 an object
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  ```
+
+  If you press F5, an assert will be triggered like below as long as you wrap all gl functions with `GLCALL()`:
+
+  ![image](https://github.com/hls333555/OpenGL/blob/master/images/VAO_Assert.png)
+
+  This is because no VAO objects are found in the core OpenGL profile, which is stated in [VertexArrayObject](https://www.khronos.org/opengl/wiki/Vertex_Specification#Vertex_Array_Object):
+
+  > The compatibility OpenGL profile makes VAO object 0 a default object. The core OpenGL profile makes VAO object 0 not an object at all. So if VAO 0 is bound in the core profile, you should not call any function that modifies VAO state. This includes binding the `GL_ELEMENT_ARRAY_BUFFER` with [glBindBuffer](https://www.khronos.org/opengl/wiki/GLAPI/glBindBuffer).
+
+* To fix that, simply create a VAO:
+
+  ```cpp
+  // Vertex array object
+  unsigned int vao;
+  // Generate vertex array object names
+  glGenVertexArrays(1, &vao);
+  // Bind a vertex array object
+  glBindVertexArray(vao);
+  ```
+
+  When you run the program, everything should work fine now!
+
+* In fact, the following lines of code in the game loop are no longer needed since a VAO is created and bound and vertex information is linked to this VAO later:
+
+  ```cpp
+  // Bind vertex buffer and set up the layout
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
+  ```
+
+  Therefore, the above code can be replaced with the following line:
+
+  ```cpp
+  // Bind vertex array
+  glBindVertexArray(vao);
+  ```
 

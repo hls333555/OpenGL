@@ -136,6 +136,12 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	// Use OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// Use core OpenGL profile which will not make VAO object 0 an object
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
 	if (!window)
@@ -170,6 +176,13 @@ int main(void)
 		2, 3, 0
 	};
 
+	// Vertex array object
+	unsigned int vao;
+	// Generate vertex array object names
+	glGenVertexArrays(1, &vao);
+	// Bind a vertex array object
+	glBindVertexArray(vao);
+
 	// Vertex buffer object
 	unsigned int vbo;
 	// Generate vertex buffer object names
@@ -177,7 +190,7 @@ int main(void)
 	// Bind a named vertex buffer object
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	// Create and initialize a vertex buffer object's data store
-	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 
 	// Enable the position vertex attribute data
 	glEnableVertexAttribArray(0);
@@ -198,13 +211,19 @@ int main(void)
 	ParseShader("res/shaders/Basic.shader", vsSource, fsSource);
 	// Create shader
 	unsigned int program = CreateShader(vsSource, fsSource);
-	// Install the program object as part of current rendering state
+	// Install(Bind) the program object as part of current rendering state
 	glUseProgram(program);
 
 	int location = glGetUniformLocation(program, "u_Color");
 	// If uColor is not used in the fragment shader, it will return -1
 	ASSERT(location != -1);
 	glUniform4f(location, 0.f, 1.f, 1.f, 1.f);
+
+	// Unbind all the objects
+	glBindVertexArray(0);
+	glUseProgram(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	float r = 0.f;
 	float increment = 0.05f;
@@ -214,7 +233,16 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// Bind shader and set up uniforms
+		glUseProgram(program);
 		glUniform4f(location, r, 1.f, 1.f, 1.f);
+		
+		// Bind vertex array
+		glBindVertexArray(vao);
+
+		// Bind index buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
 		// Issue a drawcall
 		// The count is actually the number of indices rather than vertices
 		// Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
