@@ -6,7 +6,7 @@
 #include <string>
 #include <sstream>
 
-#define ASSERT(x) if(!x) __debugbreak();
+#define ASSERT(x) if(!(x)) __debugbreak();
 // You should ensure "DEBUG" exists in PreprocessorDefinations of Debug configuration
 #ifdef DEBUG
 #define GLCALL(x) GLClearError();\

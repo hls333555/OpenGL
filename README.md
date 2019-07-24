@@ -343,7 +343,8 @@ There are mainly two ways to deal with errors in OpenGL:
 Here, we use the first method to track our error:
 
 ```cpp
-#define ASSERT(x) if(!x) __debugbreak();
+// Note that we must put brackets around x!
+#define ASSERT(x) if(!(x)) __debugbreak();
 // You should ensure "DEBUG" exists in PreprocessorDefinations of Debug configuration
 #ifdef DEBUG
 #define GLCALL(x) GLClearError();\
