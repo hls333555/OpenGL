@@ -147,6 +147,8 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(1);
+
 	// This MUST be called after a valid OpenGL rendering context being created
 	if (glewInit() != GLEW_OK)
 	{
@@ -199,16 +201,34 @@ int main(void)
 	// Install the program object as part of current rendering state
 	glUseProgram(program);
 
+	int location = glGetUniformLocation(program, "u_Color");
+	// If uColor is not used in the fragment shader, it will return -1
+	ASSERT(location != -1);
+	glUniform4f(location, 0.f, 1.f, 1.f, 1.f);
+
+	float r = 0.f;
+	float increment = 0.05f;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		glUniform4f(location, r, 1.f, 1.f, 1.f);
 		// Issue a drawcall
 		// The count is actually the number of indices rather than vertices
 		// Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+		if (r > 1.f)
+		{
+			increment = -0.05f;
+		}
+		else if (r < 0.f)
+		{
+			increment = 0.05f;
+		}
+		r += increment;
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);

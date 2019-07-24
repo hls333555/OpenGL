@@ -12,7 +12,10 @@ void main()
 #version 330 core
 
 layout(location = 0) out vec4 color;
+
+uniform vec4 u_Color;
+
 void main()
 {
-	color = vec4(0.f, 1.f, 1.f, 1.f);
+	color = u_Color;
 }

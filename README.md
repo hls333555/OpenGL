@@ -379,3 +379,28 @@ GLCALL(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
 
 When pressing F5 in debug mode, you will see a breakpoint being triggered if an error occurs in that call.
 
+## Uniforms in OpenGL
+
+**Uniforms are a way to get data from the CPU side(C++ in the case) into the shader.**
+
+Here are the main steps to use uniforms in OpenGL:
+
+* Add a variable into shader:
+
+  ```cpp
+  uniform vec4 u_Color;
+  ```
+
+* Below `glUseProgram();`, add the following code:
+
+  ```cpp
+  int location = glGetUniformLocation(program, "u_Color");
+  // If uColor is not used in the fragment shader, it will return -1
+  //ASSERT(location != -1);
+  glUniform4f(location, 0.f, 1.f, 1.f, 1.f);
+  ```
+
+You can see an example in code using uniforms to achieve a flashing effect like below:
+
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Uniforms.gif)
+
