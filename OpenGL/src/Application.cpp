@@ -6,31 +6,11 @@
 #include <string>
 #include <sstream>
 
-#define ASSERT(x) if(!(x)) __debugbreak();
-// You should ensure "DEBUG" exists in PreprocessorDefinations of Debug configuration
-#ifdef DEBUG
-#define GLCALL(x) GLClearError();\
-	x;\
-	ASSERT(GLLogCall(__FILE__, #x, __LINE__))
-#else
-#define GLCALL(x) x
-#endif
-
-static void GLClearError()
-{
-	// Loop to clear all previous errors
-	while (glGetError() != GL_NO_ERROR);
-}
-
-static bool GLLogCall(const char* file, const char* function, int line)
-{
-	while (unsigned int error = glGetError())
-	{
-		std::cout << "OpenGL error: " << error << " in " << file << ", " << function << ", " << line << std::endl;
-		return false;
-	}
-	return true;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "VertexArray.h"
+#include "VertexBufferLayout.h"
 
 static void ParseShader(const std::string& filePath, std::string& vertexShaderSource, std::string& fragmentShaderSource)
 {
@@ -164,109 +144,88 @@ int main(void)
 	// Print OpenGL version in current graphics driver
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
-	float positions[] = {
-		-0.5f, -0.5f, // 0
-		 0.5f, -0.5f, // 1
-		 0.5f,  0.5f, // 2
-		-0.5f,  0.5f  // 3
-	};
-
-	unsigned int indices[] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-
-	// Vertex array object
-	unsigned int vao;
-	// Generate vertex array object names
-	glGenVertexArrays(1, &vao);
-	// Bind a vertex array object
-	glBindVertexArray(vao);
-
-	// Vertex buffer object
-	unsigned int vbo;
-	// Generate vertex buffer object names
-	glGenBuffers(1, &vbo);
-	// Bind a named vertex buffer object
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	// Create and initialize a vertex buffer object's data store
-	glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
-
-	// Enable the position vertex attribute data
-	glEnableVertexAttribArray(0);
-	// Define a position vertex attribute data
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0);
-
-	// Index buffer object
-	unsigned int ibo;
-	// Generate index buffer object names
-	glGenBuffers(1, &ibo);
-	// Bind a named index buffer object
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	// Create and initialize an index buffer object's data store
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-
-	std::string vsSource, fsSource;
-	// Read shaders from shader file
-	ParseShader("res/shaders/Basic.shader", vsSource, fsSource);
-	// Create shader
-	unsigned int program = CreateShader(vsSource, fsSource);
-	// Install(Bind) the program object as part of current rendering state
-	glUseProgram(program);
-
-	int location = glGetUniformLocation(program, "u_Color");
-	// If uColor is not used in the fragment shader, it will return -1
-	ASSERT(location != -1);
-	glUniform4f(location, 0.f, 1.f, 1.f, 1.f);
-
-	// Unbind all the objects
-	glBindVertexArray(0);
-	glUseProgram(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	float r = 0.f;
-	float increment = 0.05f;
-	/* Loop until the user closes the window */
-	while (!glfwWindowShouldClose(window))
 	{
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
+		float positions[] = {
+			-0.5f, -0.5f, // 0
+			 0.5f, -0.5f, // 1
+			 0.5f,  0.5f, // 2
+			-0.5f,  0.5f  // 3
+		};
 
-		// Bind shader and set up uniforms
+		unsigned int indices[] = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		VertexArray va;
+
+		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+
+		VertexBufferLayout layout;
+		layout.Push<float>(2);
+		va.AddBuffer(vb, layout);
+
+		IndexBuffer ib(indices, 6);
+
+		std::string vsSource, fsSource;
+		// Read shaders from shader file
+		ParseShader("res/shaders/Basic.shader", vsSource, fsSource);
+		// Create shader
+		unsigned int program = CreateShader(vsSource, fsSource);
+		// Install(Bind) the program object as part of current rendering state
 		glUseProgram(program);
-		glUniform4f(location, r, 1.f, 1.f, 1.f);
-		
-		// Bind vertex array
-		glBindVertexArray(vao);
 
-		// Bind index buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		int location = glGetUniformLocation(program, "u_Color");
+		// If uColor is not used in the fragment shader, it will return -1
+		ASSERT(location != -1);
+		glUniform4f(location, 0.f, 1.f, 1.f, 1.f);
 
-		// Issue a drawcall
-		// The count is actually the number of indices rather than vertices
-		// Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		// Unbind all the objects
+		glBindVertexArray(0);
+		glUseProgram(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		if (r > 1.f)
+		float r = 0.f;
+		float increment = 0.05f;
+		/* Loop until the user closes the window */
+		while (!glfwWindowShouldClose(window))
 		{
-			increment = -0.05f;
-		}
-		else if (r < 0.f)
-		{
-			increment = 0.05f;
-		}
-		r += increment;
+			/* Render here */
+			glClear(GL_COLOR_BUFFER_BIT);
 
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+			// Bind shader and set up uniforms
+			glUseProgram(program);
+			glUniform4f(location, r, 1.f, 1.f, 1.f);
 
-		/* Poll for and process events */
-		glfwPollEvents();
+			va.Bind();
+			ib.Bind();
+
+			// Issue a drawcall
+			// The count is actually the number of indices rather than vertices
+			// Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+			if (r > 1.f)
+			{
+				increment = -0.05f;
+			}
+			else if (r < 0.f)
+			{
+				increment = 0.05f;
+			}
+			r += increment;
+
+			/* Swap front and back buffers */
+			glfwSwapBuffers(window);
+
+			/* Poll for and process events */
+			glfwPollEvents();
+		}
+
+		// Delete the program object
+		glDeleteProgram(program);
 	}
-
-	// Delete the program object
-	glDeleteProgram(program);
 
 	glfwTerminate();
 	return 0;
