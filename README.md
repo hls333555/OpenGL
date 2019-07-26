@@ -661,7 +661,7 @@ That's because blending is not set properly.
 
 ### What is blending?
 
-![image](https://github.com/hls333555/OpenGL/blob/master/images/Blending.png)
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Blending.jpg)
 Blending determines how we **combine** our **output** color with what is already in our **target buffer**.
 **Output** = the color we output from our fragment shader (known as **source**)
 **Target buffer** = the buffer our fragment shader is drawing to (known as **destination**)
@@ -726,4 +726,3 @@ glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 Here's the result with transparency being blended properly:
 
 ![image](https://github.com/hls333555/OpenGL/blob/master/images/Texture_Trans_Blending.png)
-
