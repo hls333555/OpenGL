@@ -30,11 +30,6 @@ struct VertexBufferElement
 
 class VertexBufferLayout
 {
-private:
-	std::vector<VertexBufferElement> m_Elements;
-	unsigned int m_Stride;
-
-
 public:
 	VertexBufferLayout()
 		: m_Stride(0)
@@ -71,5 +66,9 @@ public:
 		m_Elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE });
 		m_Stride += count * VertexBufferElement::GetSizeOfType(GL_UNSIGNED_BYTE);
 	}
+
+private:
+	std::vector<VertexBufferElement> m_Elements;
+	unsigned int m_Stride;
 
 };
