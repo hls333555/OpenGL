@@ -11,7 +11,7 @@ public:
 
 	/** Bind a named index buffer object. */
 	void Bind() const;
-	/** Unbind a named index buffer object */
+	/** Unbind index buffer objects. */
 	void Unbind() const;
 
 private:

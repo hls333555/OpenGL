@@ -9,6 +9,7 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 #include "Shader.h"
+#include "Texture.h"
 
 int main(void)
 {
@@ -47,11 +48,13 @@ int main(void)
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
 	{
+		// Two floats for vertex position and two floats for texture coordinate
+		// For texture coordinate system, the bottom-left is (0,0), the top-right is (1,1)
 		float positions[] = {
-			-0.5f, -0.5f, // 0
-			 0.5f, -0.5f, // 1
-			 0.5f,  0.5f, // 2
-			-0.5f,  0.5f  // 3
+			-0.5f, -0.5f, 0.f, 0.f, // 0
+			 0.5f, -0.5f, 1.f, 0.f, // 1
+			 0.5f,  0.5f, 1.f, 1.f, // 2
+			-0.5f,  0.5f, 0.f, 1.f  // 3
 		};
 
 		unsigned int indices[] = {
@@ -61,9 +64,12 @@ int main(void)
 
 		VertexArray va;
 
-		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+		VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 
 		VertexBufferLayout layout;
+		// Vertex position
+		layout.Push<float>(2);
+		// Texture coordinate
 		layout.Push<float>(2);
 		va.AddBuffer(vb, layout);
 
@@ -72,6 +78,12 @@ int main(void)
 		Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
+
+		Texture texture("res/textures/Logo.png");
+		int textureSlot = 0;
+		texture.Bind(textureSlot);
+		// Tell the shader which texture slot to sample from
+		shader.SetUniform1i("u_Texture", textureSlot);
 
 		// Unbind all the objects
 		va.Unbind();

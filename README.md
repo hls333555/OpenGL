@@ -117,7 +117,7 @@ glGenBuffers(1, &vbo);
 // Bind a named vertex buffer object
 glBindBuffer(GL_ARRAY_BUFFER, vbo);
 // Create and initialize a vertex buffer object's data store
-glBufferData(GL_ARRAY_BUFFER, 6* sizeof(float), positions, GL_STATIC_DRAW);
+glBufferData(GL_ARRAY_BUFFER, 3 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 ```
 
 Next is to *issue a draw call to actually draw the triangle* by calling the following code inside the game loop:
@@ -295,6 +295,18 @@ Here are the main steps:
       0, 1, 2,
       2, 3, 0
   };
+  ```
+
+* Replace
+
+  ```cpp
+  glBufferData(GL_ARRAY_BUFFER, 3 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+  ```
+
+  with:
+
+  ```cpp
+  glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
   ```
 
 * Send the index buffer to the GPU, note there are several differences from vertex buffer version:
@@ -477,3 +489,165 @@ Let's utilize VAO to rewrite the above code:
   glBindVertexArray(vao);
   ```
 
+## Textures in OpenGL
+
+We will use a library called *stb_image* which can be grabbed from [stb library](https://github.com/nothings/stb) to load the png file.
+
+**Basically, what it's going to do is to return a pointer to a buffer of RGBA pixels after giving it a file path. Then, we can take that pixel array and upload it to the GPU via OpenGL as a texture. After that, we can modify the shader to read the texture when it is drawing.**
+
+Here are the main steps:
+
+* Add stb_image.h to the project and create stb_image.cpp containing the following code:
+
+  ```cpp
+  // This is required above #include "stb_image.h", see stb_image.h for details
+  #define STB_IMAGE_IMPLEMENTATION
+  #include "stb_image.h"
+  ```
+
+* Load the png file:
+
+  ```cpp
+  // You should assign a png file path
+  std::string filePath;
+  unsigned char* localBuffer;
+  int width, height, BPP;
+  // OpenGL expects the texture pixels to start at the bottom-left(0,0) instead of the top-left
+  // Typically, when png image is being loaded, it is stored in scanlines from the top to the bottom of the image, so we need to flip it on load
+  stbi_set_flip_vertically_on_load(1);
+  localBuffer = stbi_load(filePath.c_str(), &width, &height, &BPP, 4/*RGBA*/);
+  ```
+
+* Create the texture and set its parameters:
+
+  ```cpp
+  unsigned int texture;
+  // Generate texture names
+  glGenTextures(1, &texture);
+  // Bind a named texture to a texturing target, you can specify the slot using 	glActiveTexture() in advance
+  glBindTexture(GL_TEXTURE_2D, texture);
+  
+  // Set texture parameters
+  // This is the minification filter that how the texture will be resampled down if it needs to be rendered smaller per pixel
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  ```
+
+* Send OpenGL the texture data:
+
+  ```cpp
+  // Send OpenGL the texture data
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8/*8-bits per channel*/, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, localBuffer);
+  // Unbind textures from a texturing target
+  glBindTexture(GL_TEXTURE_2D, 0);
+  ```
+
+* Free the local buffer when you don't need it:
+
+  ```cpp
+  if (localBuffer)
+  {
+      // Free the local buffer
+      stbi_image_free(localBuffer);
+  }
+  ```
+
+* Bind texture to a slot and tell the shader:
+
+  ```cpp
+  // Select active texture unit(slot)
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  
+  int location = glGetUniformLocation(program, "u_Texture");
+  // If u_Texture is not used in the fragment shader, it will return -1
+  //ASSERT(location != -1);
+  // Tell the shader which texture slot to sample from, the slot must be the same as the selected active texture slot
+  glUniform1i(location, GL_TEXTURE0);
+  ```
+
+* Add **texture coordinates** to **tell the geometry being rendered which part of the texture to sample from**. Furthermore, when it's up to rendering a certain pixel, tell the shader to sample a certain area of the texture to retrieve what color the pixel should be.
+
+  * Modify the vertex data array to accept texture coordinates:
+
+    ```cpp
+    // Two floats for vertex position and two floats for texture coordinate
+    // For texture coordinate system, the bottom-left is (0,0), the top-right is (1,1)
+    float positions[] = {
+        -0.5f, -0.5f, 0.f, 0.f, // 0
+         0.5f, -0.5f, 1.f, 0.f, // 1
+         0.5f,  0.5f, 1.f, 1.f, // 2
+        -0.5f,  0.5f, 0.f, 1.f  // 3
+    };
+    ```
+
+  * Enable and define the texture coordinate vertex attribute data:
+
+    ```cpp
+    // Enable the texture coordinate vertex attribute data
+    glEnableVertexAttribArray(1); // Do not forget this!
+    // Define a texture coordinate vertex attribute data
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const void*)8);
+    ```
+
+  * Replace
+
+    ```cpp
+    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+    ```
+
+    with:
+
+    ```cpp
+    glBufferData(GL_ARRAY_BUFFER, 4 * 4 * sizeof(float), positions, GL_STATIC_DRAW);
+    ```
+
+  * Next is to modify the shader code:
+
+    * For the vertex shader part:
+      * Pass in the texture coordinate vertex attribute data:
+
+        ```
+        layout(location = 1) in vec2 texCoord;
+        ```
+
+      * Define a variable to be passed out to the fragment shader:
+
+        ```
+        out vec2 v_texCoord;
+        ```
+
+      * Assign that variable in the `main()` function:
+
+        ```
+        v_texCoord = texCoord;
+        ```
+
+    * For the fragment shader part:
+
+      * Pass in the texture coordinate from the vertex shader:
+
+        ```
+        in vec2 v_texCoord;
+        ```
+
+      * Define a variable to get texture via uniform:
+
+        ```
+        uniform sampler2D u_Texture;
+        ```
+
+      * Output the final color in the `main()` function:
+
+        ```
+        // Draw the pixel from the texture in the scene by knowing the precise location in the texture to look up
+        color = texture(u_Texture, v_texCoord);
+        ```
+
+* That's it! You will now see a beautiful texture like below:
+
+  ![image](https://github.com/hls333555/OpenGL/blob/master/images/Texture_Logo.png)
+
+  

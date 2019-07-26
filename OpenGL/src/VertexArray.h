@@ -13,7 +13,7 @@ public:
 
 	/** Bind a vertex array object. */
 	void Bind() const;
-	/** Unbind a vertex array object. */
+	/** Unbind vertex array objects. */
 	void Unbind() const;
 
 private:

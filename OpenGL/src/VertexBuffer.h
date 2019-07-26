@@ -9,7 +9,7 @@ public:
 
 	/** Bind a named vertex buffer object. */
 	void Bind() const;
-	/** Unbind a named vertex buffer object. */
+	/** Unbind vertex buffer objects. */
 	void Unbind() const;
 
 private:
