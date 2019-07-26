@@ -648,6 +648,82 @@ Here are the main steps:
 
 * That's it! You will now see a beautiful texture like below:
 
-  ![image](https://github.com/hls333555/OpenGL/blob/master/images/Texture_Logo.png)
+  ![image](https://github.com/hls333555/OpenGL/blob/master/images/Texture.png)
 
-  
+
+## Blending in OpenGL
+
+If you replace the texture with a translucent one, you will see a dirty result something like below:
+
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Texture_Trans_NoBlending.png)
+
+That's because blending is not set properly.
+
+### What is blending?
+
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Blending.png)
+Blending determines how we **combine** our **output** color with what is already in our **target buffer**.
+**Output** = the color we output from our fragment shader (known as **source**)
+**Target buffer** = the buffer our fragment shader is drawing to (known as **destination**)
+
+### How do we control blending?
+
+- `glEnable(GL_BLEND)`/ `glDisable(GL_BLEND)`
+- `glBlendFunc(src, dest)`
+  - src = how the src RGBA factor is computed (default is `GL_ONE`)
+  - dest = how the dest RGBA factor is computed (default is `GL_ZERO`)
+    The default  `glBlendFunc()` is to throw away the destination and overwrite with the source.
+- `glBlendEquation(mode)`
+  - mode = how we combine the src and dest colors (default is add)
+    So what this means by default is:
+  - 1 + 0 = 1
+  - Use the source value
+
+### How to draw a translucent texture properly?
+
+- We used:
+
+  - src = `GL_SRC_ALPHA`
+  - dest = `GL_ONE_MINUS_SRC_ALPHA`
+
+- So if the pixel we’re rendering from our texture is transparent:
+
+  - src alpha = 0
+
+  - dest = 1 - 0 = 1
+
+  - Which means “Use the destination color” - the color that’s already in the buffer:
+    $$
+    R = (r_{src} * 0) + (r_{dest} * (1 - 0)) = r_{dest}\\
+    G = (g_{src} * 0) + (g_{dest} * (1 - 0)) = g_{dest}\\
+    B = (b_{src} * 0) + (b_{dest} * (1 - 0)) = b_{dest}\\
+    A = (a_{src} * 0) + (a_{dest} * (1 - 0)) = a_{dest}
+    $$
+
+- Another example:
+
+  - Our pixel is partially transparent, let’s say (1.0, 1.0, 1.0, 0.5) (RGBA):
+
+  - So it’s white but translucent
+
+  - Let’s say our destination buffer is cleared to magenta(1.0, 0.0, 1.0, 1.0)
+
+  - So using our blending settings:
+    $$
+    R = (1.0 * 0.5) + (1.0 * (1 - 0.5)) = 1.0\\
+    G = (1.0 * 0.5) + (0.0 * (1 - 0.5)) = 0.5\\
+    B = (1.0 * 0.5) + (1.0 * (1 - 0.5)) = 1.0\\
+    A = (0.5 * 0.5) + (1.0 * (1 - 0.5)) = 0.75
+    $$
+
+To fix the issue related to transparent png file, add the following code:
+
+```cpp
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+```
+
+Here's the result with transparency being blended properly:
+
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Texture_Trans_Blending.png)
+

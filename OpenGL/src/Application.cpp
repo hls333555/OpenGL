@@ -62,6 +62,10 @@ int main(void)
 			2, 3, 0
 		};
 
+		GLCALL(glEnable(GL_BLEND));
+		// Set this to blend transparency properly
+		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 		VertexArray va;
 
 		VertexBuffer vb(positions, 4 * 4 * sizeof(float));
@@ -79,7 +83,7 @@ int main(void)
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
 
-		Texture texture("res/textures/Logo.png");
+		Texture texture("res/textures/Logo_Trans.png");
 		int textureSlot = 0;
 		texture.Bind(textureSlot);
 		// Tell the shader which texture slot to sample from
