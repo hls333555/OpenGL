@@ -79,24 +79,20 @@ int main(void)
 		vb.Unbind();
 		ib.Unbind();
 
+		Renderer renderer;
+
 		float r = 0.f;
 		float increment = 0.05f;
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
-			glClear(GL_COLOR_BUFFER_BIT);
+			renderer.Clear();
 
 			shader.Bind();
 			shader.SetUniform4f("u_Color", r, 1.f, 1.f, 1.f);
 
-			va.Bind();
-			ib.Bind();
-
-			// Issue a drawcall
-			// The count is actually the number of indices rather than vertices
-			// Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
-			GLCALL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+			renderer.Draw(va, ib, shader);
 
 			if (r > 1.f)
 			{

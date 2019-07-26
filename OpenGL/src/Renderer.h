@@ -2,6 +2,10 @@
 
 #include <GL/glew.h>
 
+class VertexArray;
+class IndexBuffer;
+class Shader;
+
 #define ASSERT(x) if(!(x)) __debugbreak();
 // You should ensure "DEBUG" exists in PreprocessorDefinations of Debug configuration
 #ifdef DEBUG
@@ -15,3 +19,16 @@
 void GLClearError();
 
 bool GLLogCall(const char* file, const char* function, int line);
+
+class Renderer
+{
+public:
+	Renderer();
+	~Renderer();
+
+	void Clear() const;
+	void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+
+private:
+
+};
