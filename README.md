@@ -693,13 +693,9 @@ Blending determines how we **combine** our **output** color with what is already
   - dest = 1 - 0 = 1
 
   - Which means “Use the destination color” - the color that’s already in the buffer:
-    $$
-    R = (r_{src} * 0) + (r_{dest} * (1 - 0)) = r_{dest}\\
-    G = (g_{src} * 0) + (g_{dest} * (1 - 0)) = g_{dest}\\
-    B = (b_{src} * 0) + (b_{dest} * (1 - 0)) = b_{dest}\\
-    A = (a_{src} * 0) + (a_{dest} * (1 - 0)) = a_{dest}
-    $$
-
+    
+    ![image](https://latex.codecogs.com/png.latex?R%20%3D%20%28r_%7Bsrc%7D%20*%200%29%20+%20%28r_%7Bdest%7D%20*%20%281%20-%200%29%29%20%3D%20r_%7Bdest%7D%5C%5C%20G%20%3D%20%28g_%7Bsrc%7D%20*%200%29%20+%20%28g_%7Bdest%7D%20*%20%281%20-%200%29%29%20%3D%20g_%7Bdest%7D%5C%5C%20B%20%3D%20%28b_%7Bsrc%7D%20*%200%29%20+%20%28b_%7Bdest%7D%20*%20%281%20-%200%29%29%20%3D%20b_%7Bdest%7D%5C%5C%20A%20%3D%20%28a_%7Bsrc%7D%20*%200%29%20+%20%28a_%7Bdest%7D%20*%20%281%20-%200%29%29%20%3D%20a_%7Bdest%7D)
+  
 - Another example:
 
   - Our pixel is partially transparent, let’s say (1.0, 1.0, 1.0, 0.5) (RGBA):
@@ -709,12 +705,8 @@ Blending determines how we **combine** our **output** color with what is already
   - Let’s say our destination buffer is cleared to magenta(1.0, 0.0, 1.0, 1.0)
 
   - So using our blending settings:
-    $$
-    R = (1.0 * 0.5) + (1.0 * (1 - 0.5)) = 1.0\\
-    G = (1.0 * 0.5) + (0.0 * (1 - 0.5)) = 0.5\\
-    B = (1.0 * 0.5) + (1.0 * (1 - 0.5)) = 1.0\\
-    A = (0.5 * 0.5) + (1.0 * (1 - 0.5)) = 0.75
-    $$
+    
+    ![image](https://latex.codecogs.com/png.latex?R%20%3D%20%281.0%20*%200.5%29%20+%20%281.0%20*%20%281%20-%200.5%29%29%20%3D%201.0%5C%5C%20G%20%3D%20%281.0%20*%200.5%29%20+%20%280.0%20*%20%281%20-%200.5%29%29%20%3D%200.5%5C%5C%20B%20%3D%20%281.0%20*%200.5%29%20+%20%281.0%20*%20%281%20-%200.5%29%29%20%3D%201.0%5C%5C%20A%20%3D%20%280.5%20*%200.5%29%20+%20%281.0%20*%20%281%20-%200.5%29%29%20%3D%200.75)
 
 To fix the issue related to transparent png file, add the following code:
 
