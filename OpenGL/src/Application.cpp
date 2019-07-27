@@ -11,6 +11,9 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 int main(void)
 {
 	GLFWwindow* window;
@@ -26,7 +29,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(960, 540, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -51,10 +54,10 @@ int main(void)
 		// Two floats for vertex position and two floats for texture coordinate
 		// For texture coordinate system, the bottom-left is (0,0), the top-right is (1,1)
 		float positions[] = {
-			-0.5f, -0.5f, 0.f, 0.f, // 0
-			 0.5f, -0.5f, 1.f, 0.f, // 1
-			 0.5f,  0.5f, 1.f, 1.f, // 2
-			-0.5f,  0.5f, 0.f, 1.f  // 3
+			100.f, 100.f, 0.f, 0.f, // 0
+			200.f, 100.f, 1.f, 0.f, // 1
+			200.f, 200.f, 1.f, 1.f, // 2
+			100.f, 200.f, 0.f, 1.f  // 3
 		};
 
 		unsigned int indices[] = {
@@ -79,9 +82,21 @@ int main(void)
 
 		IndexBuffer ib(indices, 6);
 
+		// Projection matrix
+		glm::mat4 proj = glm::ortho(0.f, 960.f, 0.f, 540.f, -1.f, 1.f);
+		// View matrix
+		glm::mat4 view = glm::translate(glm::mat4(1.f), glm::vec3(-100.f, 0.f, 0.f));
+		// Model matrix
+		glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(200.f, 200.f, 0.f));
+		// Model view projection matrices (note the reverse multiplication order)
+		glm::mat4 mvp = proj * view * model;
+
 		Shader shader("res/shaders/Basic.shader");
 		shader.Bind();
+		// Send color to the shader
 		shader.SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
+		// Send MVP matrices to the shader
+		shader.SetUniformMat4f("u_MVP", mvp);
 
 		Texture texture("res/textures/Logo_Trans.png");
 		int textureSlot = 0;
