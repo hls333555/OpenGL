@@ -46,11 +46,10 @@ namespace test
 
 		m_Shader = std::make_unique<Shader>("res/shaders/Basic.shader");
 		m_Shader->Bind();
-		// Send color to the shader
 		m_Shader->SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
 
 		m_Texture = std::make_unique<Texture>("res/textures/Logo_Trans.png");
-		// Tell the shader which texture slot to sample from
+		m_Texture->Bind();
 		m_Shader->SetUniform1i("u_Texture", 0);
 	}
 
@@ -61,28 +60,18 @@ namespace test
 
 		Renderer renderer;
 
-		m_Texture->Bind();
-
 		{
-			// Model matrix
 			glm::mat4 model = glm::translate(glm::mat4(1.f), m_TranslationA);
-			// Model view projection matrices (note the reverse multiplication order)
 			glm::mat4 mvp = m_Proj * m_View * model;
 
-			m_Shader->Bind();
-			// Send MVP matrices to the shader
 			m_Shader->SetUniformMat4f("u_MVP", mvp);
 			renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 		}
 
 		{
-			// Model matrix
 			glm::mat4 model = glm::translate(glm::mat4(1.f), m_TranslationB);
-			// Model view projection matrices (note the reverse multiplication order)
 			glm::mat4 mvp = m_Proj * m_View * model;
 
-			m_Shader->Bind();
-			// Send MVP matrices to the shader
 			m_Shader->SetUniformMat4f("u_MVP", mvp);
 			renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 		}
