@@ -871,3 +871,36 @@ When you build the project, everything should work fine!
 
 As for how to use ImGui, you can refer to the main.cpp mentioned above.
 
+## Rendering Multiple Objects in OpenGL
+
+Here's the method to draw two objects at different locations by issuing two draw calls:
+
+```cpp
+glm::vec3 translationA(200.f, 200.f, 0.f);
+glm::vec3 translationB(400.f, 200.f, 0.f);
+while (!glfwWindowShouldClose(window))
+{
+	//...
+    {
+        glm::mat4 model = glm::translate(glm::mat4(1.f), translationA);
+        glm::mat4 mvp = proj * view * model;
+
+        shader.Bind();
+        shader.SetUniformMat4f("u_MVP", mvp);
+        // Render the first obejct
+        renderer.Draw(va, ib, shader);
+    }
+
+    {
+        glm::mat4 model = glm::translate(glm::mat4(1.f), translationB);
+        glm::mat4 mvp = proj * view * model;
+
+        shader.Bind();
+        shader.SetUniformMat4f("u_MVP", mvp);
+        // Render the second obejct
+        renderer.Draw(va, ib, shader);
+    }
+	//...
+}
+```
+
