@@ -845,3 +845,29 @@ void main()
 }
 ```
 
+## ImGui Intergration for OpenGL
+
+Download ImGui from [ImGui](https://github.com/ocornut/imgui) and extract h and cpp files in the root directory into our /vender/imgui folder. Then navigate to imgui-1.72/examples/, extract h and cpp files containing glfw and opengl3 into the same folder. Now our folder should look like this:
+
+![image](https://github.com/hls333555/OpenGL/blob/master/images/Imgui_Folder.png)
+
+You can also extract main.cpp file in imgui-1.72/examples/example_glfw_opengl3/ to our folder for reference purposes.
+
+Go to vs, refresh our project and include those files. *Note  the above main.cpp should not be included in our project!*
+
+There is one thing we should fix, navigate to imgui_impl_opengl3.h, replace
+
+```cpp
+#define IMGUI_IMPL_OPENGL_LOADER_GL3W
+```
+
+with:
+
+```cpp
+#define IMGUI_IMPL_OPENGL_LOADER_GLEW //We are using GLEW, not GL3W!
+```
+
+When you build the project, everything should work fine!
+
+As for how to use ImGui, you can refer to the main.cpp mentioned above.
+
