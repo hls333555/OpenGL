@@ -4,22 +4,14 @@
 #include <iostream>
 
 #include "Renderer.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "VertexBufferLayout.h"
-#include "Shader.h"
-#include "Texture.h"
-
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#define WINDOW_WIDTH 960.f
-#define WINDOW_HEIGHT 540.f
+#include "tests/Test.h"
+#include "tests/Test_ClearColor.h"
+#include "tests/Test_Texture2D.h"
 
 int main(void)
 {
@@ -59,59 +51,6 @@ int main(void)
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
 	{
-		// Two floats for vertex position and two floats for texture coordinate
-		// For texture coordinate system, the bottom-left is (0,0), the top-right is (1,1)
-		float positions[] = {
-			-50.f, -50.f, 0.f, 0.f, // 0
-			 50.f, -50.f, 1.f, 0.f, // 1
-			 50.f,  50.f, 1.f, 1.f, // 2
-			-50.f,  50.f, 0.f, 1.f  // 3
-		};
-
-		unsigned int indices[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
-
-		GLCALL(glEnable(GL_BLEND));
-		// Set this to blend transparency properly
-		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-		VertexArray va;
-
-		VertexBuffer vb(positions, 4 * 4 * sizeof(float));
-
-		VertexBufferLayout layout;
-		// Vertex position
-		layout.Push<float>(2);
-		// Texture coordinate
-		layout.Push<float>(2);
-		va.AddBuffer(vb, layout);
-
-		IndexBuffer ib(indices, 6);
-
-		// Projection matrix
-		glm::mat4 proj = glm::ortho(0.f, WINDOW_WIDTH, 0.f, WINDOW_HEIGHT, -1.f, 1.f);
-		// View matrix
-		glm::mat4 view = glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 0.f));
-
-		Shader shader("res/shaders/Basic.shader");
-		shader.Bind();
-		// Send color to the shader
-		shader.SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
-
-		Texture texture("res/textures/Logo_Trans.png");
-		int textureSlot = 0;
-		texture.Bind(textureSlot);
-		// Tell the shader which texture slot to sample from
-		shader.SetUniform1i("u_Texture", textureSlot);
-
-		// Unbind all the objects
-		va.Unbind();
-		shader.Unbind();
-		vb.Unbind();
-		ib.Unbind();
-
 		Renderer renderer;
 
 		// Setup Dear ImGui context
@@ -124,14 +63,16 @@ int main(void)
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init(glsl_version);
 
-		glm::vec3 translationA(200.f, 200.f, 0.f);
-		glm::vec3 translationB(400.f, 200.f, 0.f);
+		test::Test* currentTest = nullptr;
+		test::TestMenu* testMenu = new test::TestMenu(currentTest);
+		currentTest = testMenu;
+		testMenu->RegisterTest<test::Test_ClearColor>("Clear color");
+		testMenu->RegisterTest<test::Test_Texture2D>("2D Texture");
 
-		float r = 0.f;
-		float increment = 0.05f;
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
+			GLCALL(glClearColor(0.f, 0.f, 0.f, 1.f));
 			/* Render here */
 			renderer.Clear();
 
@@ -140,49 +81,18 @@ int main(void)
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 
+			if (currentTest)
 			{
-				// Model matrix
-				glm::mat4 model = glm::translate(glm::mat4(1.f), translationA);
-				// Model view projection matrices (note the reverse multiplication order)
-				glm::mat4 mvp = proj * view * model;
+				currentTest->OnUpdate(0.f);
+				currentTest->OnRender();
 
-				shader.Bind();
-				// Send MVP matrices to the shader
-				shader.SetUniformMat4f("u_MVP", mvp);
-				renderer.Draw(va, ib, shader);
-			}
-		
-			{
-				// Model matrix
-				glm::mat4 model = glm::translate(glm::mat4(1.f), translationB);
-				// Model view projection matrices (note the reverse multiplication order)
-				glm::mat4 mvp = proj * view * model;
-
-				shader.Bind();
-				// Send MVP matrices to the shader
-				shader.SetUniformMat4f("u_MVP", mvp);
-				renderer.Draw(va, ib, shader);
-			}
-
-			if (r > 1.f)
-			{
-				increment = -0.05f;
-			}
-			else if (r < 0.f)
-			{
-				increment = 0.05f;
-			}
-			r += increment;
-
-			// ImGui window.
-			{
-				// Create a window called "Hello, world!" and append into it
-				ImGui::Begin("Hello, world!");
-
-				ImGui::SliderFloat3("TranslationA", &translationA.x, 0.f, WINDOW_WIDTH);
-				ImGui::SliderFloat3("TranslationB", &translationB.x, 0.f, WINDOW_WIDTH);
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
+				ImGui::Begin("Tests");
+				if (currentTest != testMenu && ImGui::Button("<-"))
+				{
+					delete currentTest;
+					currentTest = testMenu;
+				}
+				currentTest->OnImGuiRender();
 				ImGui::End();
 			}
 
@@ -195,6 +105,12 @@ int main(void)
 
 			/* Poll for and process events */
 			glfwPollEvents();
+		}
+
+		delete currentTest;
+		if (currentTest != testMenu)
+		{
+			delete testMenu;
 		}
 	}
 
