@@ -32,15 +32,10 @@
 *.app
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-bld/
-[Bb]in/
-[Oo]bj/
+bin/
+bin-Intermediate/
 
 # Visual Studio cache/options directory
 .vs/
+
+OpenGL/imgui\.ini
