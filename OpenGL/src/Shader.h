@@ -26,12 +26,13 @@ private:
 	int CreateShader(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
 	unsigned int CompileShader(unsigned int type, const std::string& source);
 
-	int GetUniformLocation(const std::string& name);
+	int GetUniformLocation(const std::string& name) const;
 
+private:
 	unsigned int m_RendererID;
 
 	std::string m_filePath;
 
-	std::unordered_map<std::string, int> m_uniformLocationCache;
+	mutable std::unordered_map<std::string, int> m_uniformLocationCache;
 
 };
