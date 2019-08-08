@@ -31,9 +31,9 @@ namespace test
 		// Set this to blend transparency properly
 		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-		m_VAO = std::make_unique<VertexArray>();
+		m_VAO.reset(new VertexArray());
 
-		m_VBO = std::make_unique<VertexBuffer>(positions, 4 * 4 * sizeof(float));
+		m_VBO.reset(new VertexBuffer(positions, 4 * 4 * sizeof(float)));
 
 		VertexBufferLayout layout;
 		// Vertex position
@@ -42,22 +42,19 @@ namespace test
 		layout.Push<float>(2);
 		m_VAO->AddBuffer(*m_VBO, layout);
 
-		m_IBO = std::make_unique<IndexBuffer>(indices, 6);
+		m_IBO.reset(new IndexBuffer(indices, 6));
 
-		m_Shader = std::make_unique<Shader>("res/shaders/Basic.shader");
+		m_Shader.reset(new Shader("res/shaders/Basic.shader"));
 		m_Shader->Bind();
 		m_Shader->SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
 
-		m_Texture = std::make_unique<Texture>("res/textures/Logo_Trans.png");
+		m_Texture.reset(new Texture("res/textures/Logo_Trans.png"));
 		m_Texture->Bind();
 		m_Shader->SetUniform1i("u_Texture", 0);
 	}
 
 	void Test_Texture2D::OnRender()
 	{
-		GLCALL(glClearColor(0.f, 0.f, 0.f, 1.f));
-		GLCALL(glClear(GL_COLOR_BUFFER_BIT));
-
 		Renderer renderer;
 
 		{

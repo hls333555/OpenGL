@@ -7,7 +7,7 @@
 VertexArray::VertexArray()
 {
 	// Generate vertex array object names
-	GLCALL(glGenVertexArrays(1, &m_RendererID));
+	GLCALL(glCreateVertexArrays(1, &m_RendererID));
 }
 
 VertexArray::~VertexArray()
@@ -18,7 +18,8 @@ VertexArray::~VertexArray()
 
 void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout)
 {
-	Bind();
+	// Bind
+	GLCALL(glBindVertexArray(m_RendererID));
 	vb.Bind();
 	const auto& elements = layout.GetElements();
 	unsigned int offset = 0;
