@@ -94,8 +94,6 @@ namespace test
 
 	void Test_Cube::OnRender()
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		static bool bFirstPress = true;
 		if (glfwGetMouseButton(Test::s_Window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
 		{
