@@ -37,6 +37,8 @@ int main(void)
 		return -1;
 	}
 
+	test::Test::s_Window = window;
+
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 

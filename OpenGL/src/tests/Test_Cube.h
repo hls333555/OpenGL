@@ -28,6 +28,13 @@ namespace test
 
 		glm::mat4 m_Proj, m_View;
 
+		float m_CameraRotRadius;
+		float m_CameraYawRotSpeed, m_CameraPitchRotSpeed;
+		float m_PitchMax, m_PitchMin;
+		double m_LastXPos = 0, m_LastYPos = 0;
+		double m_DeltaX, m_DeltaY;
+		
+		bool bMotionOn = false;
 	};
 
 }

@@ -4,6 +4,8 @@
 #include <string>
 #include <functional>
 
+struct GLFWwindow;
+
 namespace test
 {
 	class Test
@@ -15,6 +17,8 @@ namespace test
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnRender() {}
 		virtual void OnImGuiRender() {}
+
+		static GLFWwindow* s_Window;
 
 	};
 
