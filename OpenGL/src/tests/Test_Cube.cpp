@@ -26,37 +26,41 @@ namespace test
 		// Accept fragment if it is closer to the camera than the former one
 		glDepthFunc(GL_LESS);
 
+		GLCALL(glEnable(GL_BLEND));
+		// Set this to blend transparency properly
+		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 		float vertices[] = {
 			// ---Begin: Top---
-			0.f,  0.5f, -0.5f, // 0
-			0.f,  0.5f,  0.f,  // 1
-			0.5f, 0.5f,  0.f,  // 2
-			0.5f, 0.5f, -0.5f, // 3
+			0.f,  0.5f, -0.5f, 0.f, 0.f, // 0
+			0.5f, 0.5f, -0.5f, 1.f, 0.f, // 1
+			0.5f, 0.5f,  0.f,  1.f, 1.f, // 2
+			0.f,  0.5f,  0.f,  0.f, 1.f, // 3
 			// ---Begin: Front---
-			0.f,  0.f,  -0.5f, // 4
-			0.f,  0.5f, -0.5f, // 5
-			0.5f, 0.5f, -0.5f, // 6
-			0.5f, 0.f,  -0.5f, // 7
+			0.f,  0.f,  -0.5f, 0.f, 0.f, // 4
+			0.5f, 0.f,  -0.5f, 1.f, 0.f, // 5
+			0.5f, 0.5f, -0.5f, 1.f, 1.f, // 6
+			0.f,  0.5f, -0.5f, 0.f, 1.f, // 7
 			// ---Begin: Left---
-			0.f, 0.f,  -0.5f,  // 8
-			0.f, 0.5f, -0.5f,  // 9
-			0.f, 0.5f,  0.f,   // 10
-			0.f, 0.f,   0.f,   // 11
+			0.f,  0.f,   0.f,  0.f, 0.f, // 8
+			0.f,  0.f,  -0.5f, 1.f, 0.f, // 9
+			0.f,  0.5f, -0.5f, 1.f, 1.f, // 10
+			0.f,  0.5f,  0.f,  0.f, 1.f, // 11
 			// ---Begin: Back---
-			0.f,  0.f,  0.f,   // 12
-			0.f,  0.5f, 0.f,   // 13
-			0.5f, 0.5f, 0.f,   // 14
-			0.5f, 0.f,  0.f,   // 15
+			0.f,  0.f,   0.f,  0.f, 0.f, // 12
+			0.5f, 0.f,   0.f,  1.f, 0.f, // 13
+			0.5f, 0.5f,  0.f,  1.f, 1.f, // 14
+			0.f,  0.5f,  0.f,  0.f, 1.f, // 15
 			// ---Begin: Right---
-			0.5f, 0.f,  -0.5f, // 16 
-			0.5f, 0.5f, -0.5f, // 17
-			0.5f, 0.5f,  0.f,  // 18
-			0.5f, 0.f,   0.f,  // 19
+			0.5f, 0.f,  -0.5f, 0.f, 0.f, // 16 
+			0.5f, 0.f,   0.f,  1.f, 0.f, // 17
+			0.5f, 0.5f,  0.f,  1.f, 1.f, // 18
+			0.5f, 0.5f, -0.5f, 0.f, 1.f, // 19
 			// ---Begin: Bottom---
-			0.f,  0.f, -0.5f,  // 20
-			0.f,  0.f,  0.f,   // 21
-			0.5f, 0.f,  0.f,   // 22
-			0.5f, 0.f, -0.5f   // 23
+			0.f,  0.f,   0.f,  0.f, 0.f, // 20
+			0.5f, 0.f,   0.f,  1.f, 0.f, // 21
+			0.5f, 0.f,  -0.5f, 1.f, 1.f, // 22
+			0.f,  0.f,  -0.5f, 0.f, 1.f  // 23
 		};
 
 		unsigned int indices[] = {
@@ -82,16 +86,21 @@ namespace test
 
 		m_VAO.reset(new VertexArray());
 
-		m_VBO.reset(new VertexBuffer(vertices, 72 * sizeof(float)));
+		m_VBO.reset(new VertexBuffer(vertices, 120 * sizeof(float)));
 
 		VertexBufferLayout layout;
 		layout.Push<float>(3);
+		layout.Push<float>(2);
 		m_VAO->AddBuffer(*m_VBO, layout);
 
 		m_IBO.reset(new IndexBuffer(indices, 36));
 
 		m_Shader.reset(new Shader("res/shaders/Cube.shader"));
 		m_Shader->Bind();
+
+		m_Texture.reset(new Texture("res/textures/Logo_Trans.png"));
+		m_Texture->Bind();
+		m_Shader->SetUniform1i("u_Texture", 0);
 
 	}
 
@@ -152,7 +161,6 @@ namespace test
 		ImGui::Text("Hold right mouse button and move to rotate the camera!");
 		ImGui::Checkbox("Motion", &bMotionOn);
 		ImGui::SliderFloat("Motion Speed", &m_ModelRotSpeed, 10.f, 360.f);
-
 		if (ImGui::Button("Reset View"))
 		{
 			ResetView();
