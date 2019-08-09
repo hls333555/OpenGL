@@ -19,6 +19,10 @@ namespace test
 		, m_CameraYawRotSpeed(0.01f), m_CameraPitchRotSpeed(0.01f)
 		, m_PitchMax(1.f), m_PitchMin(-1.f)
 	{
+		glEnable(GL_DEPTH_TEST);
+		// Accept fragment if it is closer to the camera than the former one
+		glDepthFunc(GL_LESS);
+
 		float vertices[] = {
 			// ---Begin: Top---
 			0.f,  0.5f, -0.5f, // 0
@@ -90,6 +94,8 @@ namespace test
 
 	void Test_Cube::OnRender()
 	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		static bool bFirstPress = true;
 		if (glfwGetMouseButton(Test::s_Window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
 		{
