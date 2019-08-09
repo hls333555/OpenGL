@@ -97,8 +97,11 @@ namespace test
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		static bool bFirstPress = true;
-		if (glfwGetMouseButton(Test::s_Window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+		if (glfwGetMouseButton(Test::s_Window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
 		{
+			// When right mouse button is pressed, hide cursor and constrain it at the original location
+			glfwSetInputMode(Test::s_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 			double xpos = 0, ypos = 0;
 			glfwGetCursorPos(Test::s_Window, &xpos, &ypos);
 			if (bFirstPress)
@@ -116,6 +119,8 @@ namespace test
 		else
 		{
 			bFirstPress = true;
+			// When right mouse button is rleased, restore cursor behavior
+			glfwSetInputMode(Test::s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 
 		Renderer renderer;
