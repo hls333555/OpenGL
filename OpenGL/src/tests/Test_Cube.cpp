@@ -16,9 +16,12 @@ namespace test
 		: m_Proj(glm::perspective(glm::radians(45.f), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f))
 		, m_CameraRotRadius(1.5f)
 		, m_DeltaX(glm::radians(45.f)), m_DeltaY(1)
-		, m_CameraYawRotSpeed(0.01f), m_CameraPitchRotSpeed(0.01f)
+		, m_CameraYawRotSpeed(1.f), m_CameraPitchRotSpeed(1.f)
 		, m_PitchMax(1.f), m_PitchMin(-1.f)
+		, m_ModelRotSpeed(90.f)
 	{
+		ResetView();
+
 		glEnable(GL_DEPTH_TEST);
 		// Accept fragment if it is closer to the camera than the former one
 		glDepthFunc(GL_LESS);
@@ -92,7 +95,7 @@ namespace test
 
 	}
 
-	void Test_Cube::OnRender()
+	void Test_Cube::OnUpdate(float deltaTime)
 	{
 		static bool bFirstPress = true;
 		if (glfwGetMouseButton(Test::s_Window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
@@ -108,11 +111,11 @@ namespace test
 				m_LastYPos = ypos;
 				bFirstPress = false;
 			}
-			
-			m_DeltaX += (xpos - m_LastXPos) * m_CameraYawRotSpeed;
-			m_DeltaY = glm::clamp(float(m_DeltaY + (ypos - m_LastYPos) * m_CameraPitchRotSpeed), m_PitchMin, m_PitchMax);
+			m_DeltaX += (xpos - m_LastXPos) * m_CameraYawRotSpeed * deltaTime;
+			m_DeltaY = glm::clamp(float(m_DeltaY + (ypos - m_LastYPos) * m_CameraPitchRotSpeed * deltaTime), m_PitchMin, m_PitchMax);
 			m_LastXPos = xpos;
 			m_LastYPos = ypos;
+			
 		}
 		else
 		{
@@ -124,20 +127,18 @@ namespace test
 		Renderer renderer;
 
 		{
-			static float rotation = 0.f;
-			float rotateSpeed = 1.f;
 			if (bMotionOn)
 			{
-				rotation += rotateSpeed;
-				rotation = rotation > 360.f ? 0.f : rotation;
+				m_ModelRotation += m_ModelRotSpeed * deltaTime;
+				m_ModelRotation = m_ModelRotation > 360.f ? 0.f : m_ModelRotation;
 			}
-			glm::mat4 model = glm::rotate(glm::mat4(1.f), glm::radians(rotation), glm::vec3(0.f, 1.f, 0.f)) *
+			glm::mat4 model = glm::rotate(glm::mat4(1.f), glm::radians(m_ModelRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				// Move cube to (0, 0, 0), put this at last
 				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, 0.25f));
 			m_Shader->SetUniformMat4f("u_Model", model);
 		}
 		{
-			glm::vec3 cameraPos = glm::vec3(m_CameraRotRadius * glm::cos(m_DeltaX), m_DeltaY, m_CameraRotRadius * glm::sin(m_DeltaX));
+			cameraPos = glm::vec3(m_CameraRotRadius * glm::cos(m_DeltaX), m_DeltaY, m_CameraRotRadius * glm::sin(m_DeltaX));
 			m_View = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 			m_Shader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 		}
@@ -148,7 +149,22 @@ namespace test
 
 	void Test_Cube::OnImGuiRender()
 	{
+		ImGui::Text("Hold right mouse button and move to rotate the camera!");
 		ImGui::Checkbox("Motion", &bMotionOn);
+		ImGui::SliderFloat("Motion Speed", &m_ModelRotSpeed, 10.f, 360.f);
+
+		if (ImGui::Button("Reset View"))
+		{
+			ResetView();
+		}
+	}
+
+	void Test_Cube::ResetView()
+	{
+		bMotionOn = false;
+		m_DeltaX = glm::radians(45.f);
+		m_DeltaY = 1;
+		m_ModelRotation = 0.f;
 	}
 
 }

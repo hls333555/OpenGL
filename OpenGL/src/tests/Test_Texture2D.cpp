@@ -78,6 +78,5 @@ namespace test
 	{
 		ImGui::SliderFloat3("TranslationA", &m_TranslationA.x, 0.f, WINDOW_WIDTH);
 		ImGui::SliderFloat3("TranslationB", &m_TranslationB.x, 0.f, WINDOW_WIDTH);
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 }

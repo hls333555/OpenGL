@@ -76,6 +76,11 @@ int main(void)
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
+			static float m_LastFrameTime = 0.f;
+			float time = (float)glfwGetTime();
+			float dt = time - m_LastFrameTime;
+			m_LastFrameTime = time;
+
 			GLCALL(glClearColor(0.f, 0.f, 0.f, 1.f));
 			/* Render here */
 			renderer.Clear();
@@ -85,9 +90,11 @@ int main(void)
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
 			if (currentTest)
 			{
-				currentTest->OnUpdate(0.f);
+				currentTest->OnUpdate(dt);
 				currentTest->OnRender();
 
 				ImGui::Begin("Tests");

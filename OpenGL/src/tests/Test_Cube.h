@@ -17,8 +17,11 @@ namespace test
 		Test_Cube();
 		~Test_Cube() {}
 
-		virtual void OnRender() override;
+		virtual void OnUpdate(float deltaTime) override;
 		virtual void OnImGuiRender() override;
+
+	private:
+		void ResetView();
 
 	private:
 		std::unique_ptr<VertexArray> m_VAO;
@@ -28,11 +31,14 @@ namespace test
 
 		glm::mat4 m_Proj, m_View;
 
+		glm::vec3 cameraPos;
 		float m_CameraRotRadius;
 		float m_CameraYawRotSpeed, m_CameraPitchRotSpeed;
 		float m_PitchMax, m_PitchMin;
 		double m_LastXPos = 0, m_LastYPos = 0;
 		double m_DeltaX, m_DeltaY;
+		float m_ModelRotation = 0.f;
+		float m_ModelRotSpeed;
 		
 		bool bMotionOn = false;
 	};
