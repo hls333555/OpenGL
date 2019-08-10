@@ -21,7 +21,11 @@ namespace test
 		virtual void OnUpdate(float deltaTime) override;
 		virtual void OnImGuiRender() override;
 
+		virtual void ProcessInput(GLFWwindow* window, float deltaTime) override;
+
 	private:
+		static void OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset);
+
 		void ResetView();
 
 	private:
@@ -33,16 +37,21 @@ namespace test
 
 		glm::mat4 m_Proj, m_View;
 
-		glm::vec3 cameraPos;
-		float m_CameraRotRadius;
-		float m_CameraYawRotSpeed, m_CameraPitchRotSpeed;
-		float m_PitchMax, m_PitchMin;
+		float m_CameraOrbitRadius;
+		glm::vec3 m_CameraPos;
+		glm::vec3 m_CameraFront;
+		glm::vec3 m_CameraUp;
+		float m_CameraMoveSpeed;
+		float m_CameraRotSpeed;
+		float m_Yaw, m_Pitch;
+		static float s_FOV;
+		float m_FOVMin, m_FOVMax;
 		double m_LastXPos = 0, m_LastYPos = 0;
-		double m_DeltaX, m_DeltaY;
+
+		bool bMotionOn = false;
 		float m_ModelRotation = 0.f;
 		float m_ModelRotSpeed;
 		
-		bool bMotionOn = false;
 	};
 
 }

@@ -18,6 +18,8 @@ namespace test
 		virtual void OnRender() {}
 		virtual void OnImGuiRender() {}
 
+		virtual void ProcessInput(GLFWwindow* window, float deltaTime) {}
+
 		static GLFWwindow* s_Window;
 
 	};
