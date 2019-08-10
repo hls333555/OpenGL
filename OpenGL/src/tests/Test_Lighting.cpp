@@ -37,7 +37,7 @@ namespace test
 		// Accept fragment if it is closer to the camera than the former one
 		glDepthFunc(GL_LESS);
 
-		GLCALL(glEnable(GL_BLEND));
+		//GLCALL(glEnable(GL_BLEND));
 		// Set this to blend transparency properly
 		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -45,36 +45,37 @@ namespace test
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
 
 		float vertices[] = {
+			// Positions        // Normals
 			// ---Begin: Top---
-			0.f,  0.5f,  0.5f, // 0
-			0.5f, 0.5f,  0.5f, // 1
-			0.5f, 0.5f,  0.f,  // 2
-			0.f,  0.5f,  0.f,  // 3
+			0.f,  0.5f,  0.5f,  0.f, 1.f, 0.f,  // 0
+			0.5f, 0.5f,  0.5f,  0.f, 1.f, 0.f,  // 1
+			0.5f, 0.5f,  0.f,   0.f, 1.f, 0.f,  // 2
+			0.f,  0.5f,  0.f,   0.f, 1.f, 0.f,  // 3
 			// ---Begin: Front---
-			0.f,  0.f,   0.5f, // 4
-			0.5f, 0.f,   0.5f, // 5
-			0.5f, 0.5f,  0.5f, // 6
-			0.f,  0.5f,  0.5f, // 7
+			0.f,  0.f,   0.5f,  0.f, 0.f, 1.f,  // 4
+			0.5f, 0.f,   0.5f,  0.f, 0.f, 1.f,  // 5
+			0.5f, 0.5f,  0.5f,  0.f, 0.f, 1.f,  // 6
+			0.f,  0.5f,  0.5f,  0.f, 0.f, 1.f,  // 7
 			// ---Begin: Left---
-			0.f,  0.f,   0.f,  // 8
-			0.f,  0.f,   0.5f, // 9
-			0.f,  0.5f,  0.5f, // 10
-			0.f,  0.5f,  0.f,  // 11
+			0.f,  0.f,   0.f,  -1.f, 0.f, 0.f,  // 8
+			0.f,  0.f,   0.5f, -1.f, 0.f, 0.f,  // 9
+			0.f,  0.5f,  0.5f, -1.f, 0.f, 0.f,  // 10
+			0.f,  0.5f,  0.f,  -1.f, 0.f, 0.f,  // 11
 			// ---Begin: Back---
-			0.f,  0.f,   0.f,  // 12
-			0.5f, 0.f,   0.f,  // 13
-			0.5f, 0.5f,  0.f,  // 14
-			0.f,  0.5f,  0.f,  // 15
+			0.f,  0.f,   0.f,   0.f, 0.f, -1.f, // 12
+			0.5f, 0.f,   0.f,   0.f, 0.f, -1.f, // 13
+			0.5f, 0.5f,  0.f,   0.f, 0.f, -1.f, // 14
+			0.f,  0.5f,  0.f,   0.f, 0.f, -1.f, // 15
 			// ---Begin: Right---
-			0.5f, 0.f,   0.5f, // 16 
-			0.5f, 0.f,   0.f,  // 17
-			0.5f, 0.5f,  0.f,  // 18
-			0.5f, 0.5f,  0.5f, // 19
+			0.5f, 0.f,   0.5f,  1.f, 0.f, 0.f,  // 16 
+			0.5f, 0.f,   0.f,   1.f, 0.f, 0.f,  // 17
+			0.5f, 0.5f,  0.f,   1.f, 0.f, 0.f,  // 18
+			0.5f, 0.5f,  0.5f,  1.f, 0.f, 0.f,  // 19
 			// ---Begin: Bottom---
-			0.f,  0.f,   0.f,  // 20
-			0.5f, 0.f,   0.f,  // 21
-			0.5f, 0.f,   0.5f, // 22
-			0.f,  0.f,   0.5f  // 23
+			0.f,  0.f,   0.f,   0.f, -1.f, 0.f, // 20
+			0.5f, 0.f,   0.f,   0.f, -1.f, 0.f, // 21
+			0.5f, 0.f,   0.5f,  0.f, -1.f, 0.f, // 22
+			0.f,  0.f,   0.5f,  0.f, -1.f, 0.f  // 23
 		};
 
 		unsigned int indices[] = {
@@ -100,9 +101,10 @@ namespace test
 
 		m_CubeVAO.reset(new VertexArray());
 
-		m_VBO.reset(new VertexBuffer(vertices, 72 * sizeof(float)));
+		m_VBO.reset(new VertexBuffer(vertices, 144 * sizeof(float)));
 
 		VertexBufferLayout layout_Cube;
+		layout_Cube.Push<float>(3);
 		layout_Cube.Push<float>(3);
 		m_CubeVAO->AddBuffer(*m_VBO, layout_Cube);
 
@@ -119,6 +121,7 @@ namespace test
 		m_VBO->Bind();
 
 		VertexBufferLayout layout_LightSource;
+		layout_LightSource.Push<float>(3);
 		layout_LightSource.Push<float>(3);
 		m_LightSourceVAO->AddBuffer(*m_VBO, layout_LightSource);
 
@@ -160,9 +163,12 @@ namespace test
 			m_LightSourceShader->Bind();
 			m_LightSourceShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 		}
-
+		
+		m_CubeShader->Bind();
+		m_CubeShader->SetUniform3f("u_LightPos", m_LightPos.x, m_LightPos.y, m_LightPos.z);
+		m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 		renderer.Draw(*m_CubeVAO, *m_IBO, *m_CubeShader);
-		renderer.Draw(*m_CubeVAO, *m_IBO, *m_LightSourceShader);
+		renderer.Draw(*m_LightSourceVAO, *m_IBO, *m_LightSourceShader);
 
 	}
 
