@@ -45,19 +45,19 @@ namespace test
 
 		float vertices[] = {
 			// ---Begin: Top---
-			0.f,  0.5f, -0.5f, 0.f, 0.f, // 0
-			0.5f, 0.5f, -0.5f, 1.f, 0.f, // 1
+			0.f,  0.5f,  0.5f, 0.f, 0.f, // 0
+			0.5f, 0.5f,  0.5f, 1.f, 0.f, // 1
 			0.5f, 0.5f,  0.f,  1.f, 1.f, // 2
 			0.f,  0.5f,  0.f,  0.f, 1.f, // 3
 			// ---Begin: Front---
-			0.f,  0.f,  -0.5f, 0.f, 0.f, // 4
-			0.5f, 0.f,  -0.5f, 1.f, 0.f, // 5
-			0.5f, 0.5f, -0.5f, 1.f, 1.f, // 6
-			0.f,  0.5f, -0.5f, 0.f, 1.f, // 7
+			0.f,  0.f,   0.5f, 0.f, 0.f, // 4
+			0.5f, 0.f,   0.5f, 1.f, 0.f, // 5
+			0.5f, 0.5f,  0.5f, 1.f, 1.f, // 6
+			0.f,  0.5f,  0.5f, 0.f, 1.f, // 7
 			// ---Begin: Left---
 			0.f,  0.f,   0.f,  0.f, 0.f, // 8
-			0.f,  0.f,  -0.5f, 1.f, 0.f, // 9
-			0.f,  0.5f, -0.5f, 1.f, 1.f, // 10
+			0.f,  0.f,   0.5f, 1.f, 0.f, // 9
+			0.f,  0.5f,  0.5f, 1.f, 1.f, // 10
 			0.f,  0.5f,  0.f,  0.f, 1.f, // 11
 			// ---Begin: Back---
 			0.f,  0.f,   0.f,  0.f, 0.f, // 12
@@ -65,15 +65,15 @@ namespace test
 			0.5f, 0.5f,  0.f,  1.f, 1.f, // 14
 			0.f,  0.5f,  0.f,  0.f, 1.f, // 15
 			// ---Begin: Right---
-			0.5f, 0.f,  -0.5f, 0.f, 0.f, // 16 
+			0.5f, 0.f,   0.5f, 0.f, 0.f, // 16 
 			0.5f, 0.f,   0.f,  1.f, 0.f, // 17
 			0.5f, 0.5f,  0.f,  1.f, 1.f, // 18
-			0.5f, 0.5f, -0.5f, 0.f, 1.f, // 19
+			0.5f, 0.5f,  0.5f, 0.f, 1.f, // 19
 			// ---Begin: Bottom---
 			0.f,  0.f,   0.f,  0.f, 0.f, // 20
 			0.5f, 0.f,   0.f,  1.f, 0.f, // 21
-			0.5f, 0.f,  -0.5f, 1.f, 1.f, // 22
-			0.f,  0.f,  -0.5f, 0.f, 1.f  // 23
+			0.5f, 0.f,   0.5f, 1.f, 1.f, // 22
+			0.f,  0.f,   0.5f, 0.f, 1.f  // 23
 		};
 
 		unsigned int indices[] = {
@@ -131,7 +131,7 @@ namespace test
 			}
 			glm::mat4 model = glm::rotate(glm::mat4(1.f), glm::radians(m_ModelRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				// Move cube to (0, 0, 0), put this at last
-				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, 0.25f));
+				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, -0.25f));
 			m_Shader->SetUniformMat4f("u_Model", model);
 		}
 		{
