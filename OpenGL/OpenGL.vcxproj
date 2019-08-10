@@ -92,6 +92,7 @@
     <ClCompile Include="src\tests\Test.cpp" />
     <ClCompile Include="src\tests\Test_ClearColor.cpp" />
     <ClCompile Include="src\tests\Test_Cube.cpp" />
+    <ClCompile Include="src\tests\Test_Lighting.cpp" />
     <ClCompile Include="src\tests\Test_Texture2D.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
@@ -109,6 +110,8 @@
     <None Include="..\README.md" />
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\Cube.shader" />
+    <None Include="res\shaders\Cube_Lighting.shader" />
+    <None Include="res\shaders\LightSource.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl" />
     <None Include="src\vendor\glm\detail\func_common_simd.inl" />
     <None Include="src\vendor\glm\detail\func_exponential.inl" />
@@ -249,6 +252,7 @@
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\Test_ClearColor.h" />
     <ClInclude Include="src\tests\Test_Cube.h" />
+    <ClInclude Include="src\tests\Test_Lighting.h" />
     <ClInclude Include="src\tests\Test_Texture2D.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\vendor\glm\common.hpp" />

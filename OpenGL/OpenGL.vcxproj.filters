@@ -72,6 +72,9 @@
     <ClCompile Include="src\tests\Test_Cube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\Test_Lighting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
@@ -473,6 +476,8 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="res\shaders\Cube.shader" />
+    <None Include="res\shaders\LightSource.shader" />
+    <None Include="res\shaders\Cube_Lighting.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1256,6 +1261,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\Test_Cube.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\Test_Lighting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -13,6 +13,7 @@
 #include "tests/Test_ClearColor.h"
 #include "tests/Test_Texture2D.h"
 #include "tests/Test_Cube.h"
+#include "tests/Test_Lighting.h"
 
 int main(void)
 {
@@ -72,6 +73,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_ClearColor>("Clear color");
 		testMenu->RegisterTest<test::Test_Texture2D>("2D Texture");
 		testMenu->RegisterTest<test::Test_Cube>("3D Cube");
+		testMenu->RegisterTest<test::Test_Lighting>("Lighting Scene");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
