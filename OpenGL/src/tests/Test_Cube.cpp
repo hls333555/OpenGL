@@ -19,6 +19,8 @@
 namespace test
 {
 	float Test_Cube::s_FOV = DEFAULT_FOV;
+	float Test_Cube::s_FOVMin = 1.f;
+	float Test_Cube::s_FOVMax = 90.f;
 
 	Test_Cube::Test_Cube()
 		: m_CameraOrbitRadius(3.f)
@@ -28,7 +30,6 @@ namespace test
 		, m_CameraMoveSpeed(3.f)
 		, m_CameraRotSpeed(15.f)
 		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
-		, m_FOVMin(1.f), m_FOVMax(45.f)
 		, m_ModelRotSpeed(90.f)
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -240,7 +241,7 @@ namespace test
 
 	void Test_Cube::OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 	{
-		s_FOV = glm::clamp(float(s_FOV - yoffset), 1.f, 45.f);
+		s_FOV = glm::clamp(float(s_FOV - yoffset), s_FOVMin, s_FOVMax);
 	}
 
 	void Test_Cube::ResetView()

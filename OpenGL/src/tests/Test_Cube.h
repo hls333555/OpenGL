@@ -44,8 +44,7 @@ namespace test
 		float m_CameraMoveSpeed;
 		float m_CameraRotSpeed;
 		float m_Yaw, m_Pitch;
-		static float s_FOV;
-		float m_FOVMin, m_FOVMax;
+		static float s_FOV, s_FOVMin, s_FOVMax;
 		double m_LastXPos = 0, m_LastYPos = 0;
 
 		bool bMotionOn = false;
