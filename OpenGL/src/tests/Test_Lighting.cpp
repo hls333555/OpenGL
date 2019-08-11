@@ -56,6 +56,12 @@ namespace test
 			{-1.1f, -0.7f, -0.9f}
 		};
 
+		m_PointLightPositions = {
+			{0.7f, 0.2f, -0.8f},
+			{-2.7f, 1.6f, 2.3f},
+			{-1.8f, -2.5f, -3.6f}
+		};
+
 		float vertices[] = {
 			// Positions        // Normals      // TextureCoordinates
 			// ---Begin: Top---
@@ -126,29 +132,54 @@ namespace test
 		m_CubeShader.reset(new Shader("res/shaders/Cube_Lighting.shader"));
 		m_CubeShader->Bind();
 		m_CubeShader->SetUniform1f("u_Material.shininess", 64.f);
-		m_CubeShader->SetUniform3f("u_DirLight.ambientIntensity", 0.1f, 0.1f, 0.1f);
-		m_CubeShader->SetUniform3f("u_DirLight.diffuseIntensity", 1.f, 1.f, 1.f);
-		m_CubeShader->SetUniform3f("u_DirLight.specularIntensity", 1.f, 1.f, 1.f);
+
+		m_CubeShader->SetUniform3f("u_DirLight.ambientIntensity", 0.05f, 0.05f, 0.05f);
+		m_CubeShader->SetUniform3f("u_DirLight.diffuseIntensity", 0.4f, 0.4f, 0.4f);
+		m_CubeShader->SetUniform3f("u_DirLight.specularIntensity", 0.5f, 0.5f, 0.5f);
+
+		m_CubeShader->SetUniform3f("u_PointLights[0].position", m_PointLightPositions[0].x, m_PointLightPositions[0].y, m_PointLightPositions[0].z);
+		m_CubeShader->SetUniform3f("u_PointLights[0].ambientIntensity", 0.05f, 0.05f, 0.05f);
+		m_CubeShader->SetUniform3f("u_PointLights[0].diffuseIntensity", 0.6f, 0.6f, 0.6f);
+		m_CubeShader->SetUniform3f("u_PointLights[0].specularIntensity", 1.f, 1.f, 1.f);
+		m_CubeShader->SetUniform1f("u_PointLights[0].q", 0.032f);
+		m_CubeShader->SetUniform1f("u_PointLights[0].l", 0.09f);
+		m_CubeShader->SetUniform1f("u_PointLights[0].c", 1.f);
+
+		m_CubeShader->SetUniform3f("u_PointLights[1].position", m_PointLightPositions[1].x, m_PointLightPositions[1].y, m_PointLightPositions[1].z);
+		m_CubeShader->SetUniform3f("u_PointLights[1].ambientIntensity", 0.05f, 0.05f, 0.05f);
+		m_CubeShader->SetUniform3f("u_PointLights[1].diffuseIntensity", 0.6f, 0.6f, 0.6f);
+		m_CubeShader->SetUniform3f("u_PointLights[1].specularIntensity", 1.f, 1.f, 1.f);
+		m_CubeShader->SetUniform1f("u_PointLights[1].q", 0.032f);
+		m_CubeShader->SetUniform1f("u_PointLights[1].l", 0.09f);
+		m_CubeShader->SetUniform1f("u_PointLights[1].c", 1.f);
+
+		m_CubeShader->SetUniform3f("u_PointLights[2].position", m_PointLightPositions[2].x, m_PointLightPositions[2].y, m_PointLightPositions[2].z);
+		m_CubeShader->SetUniform3f("u_PointLights[2].ambientIntensity", 0.05f, 0.05f, 0.05f);
+		m_CubeShader->SetUniform3f("u_PointLights[2].diffuseIntensity", 0.6f, 0.6f, 0.6f);
+		m_CubeShader->SetUniform3f("u_PointLights[2].specularIntensity", 1.f, 1.f, 1.f);
+		m_CubeShader->SetUniform1f("u_PointLights[2].q", 0.032f);
+		m_CubeShader->SetUniform1f("u_PointLights[2].l", 0.09f);
+		m_CubeShader->SetUniform1f("u_PointLights[2].c", 1.f);
 
 		m_CubeDiffuseTexture.reset(new Texture("res/textures/Logo_D.png"));
 		m_CubeShader->SetUniform1i("u_Material.diffuseTex", 0);
 		m_CubeSpecularTexture.reset(new Texture("res/textures/Logo_S.png"));
 		m_CubeShader->SetUniform1i("u_Material.specularTex", 1);
 
-		m_LightSourceVAO.reset(new VertexArray());
+		m_PointLightVAO.reset(new VertexArray());
 
 		m_VBO->Bind();
 
-		VertexBufferLayout layout_LightSource;
-		layout_LightSource.Push<float>(3);
-		layout_LightSource.Push<float>(3);
-		layout_LightSource.Push<float>(2);
-		m_LightSourceVAO->AddBuffer(*m_VBO, layout_LightSource);
+		VertexBufferLayout layout_PointLight;
+		layout_PointLight.Push<float>(3);
+		layout_PointLight.Push<float>(3);
+		layout_PointLight.Push<float>(2);
+		m_PointLightVAO->AddBuffer(*m_VBO, layout_PointLight);
 
 		m_IBO->Bind();
 
-		m_LightSourceShader.reset(new Shader("res/shaders/LightSource.shader"));
-		m_LightSourceShader->Bind();
+		m_PointLightShader.reset(new Shader("res/shaders/LightSource.shader"));
+		m_PointLightShader->Bind();
 
 	}
 
@@ -172,6 +203,8 @@ namespace test
 			//m_CubeShader->SetUniform3f("u_DirLight.position", m_LightPos.x, m_LightPos.y, m_LightPos.z);
 			m_CubeShader->SetUniform3f("u_DirLight.direction", -0.2f, -1.f, -0.3f);
 			m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+			m_CubeShader->SetUniform1i("u_EnableDirLight", m_bEnableDirLight);
+			m_CubeShader->SetUniform1i("u_EnablePointLights", m_bEnablePointLights);
 
 			m_CubeDiffuseTexture->Bind();
 			m_CubeSpecularTexture->Bind(1);
@@ -194,13 +227,19 @@ namespace test
 		}
 		// Render light source
 		{
-			glm::mat4 model_LightSource = glm::translate(glm::mat4(1.f), m_LightPos) * glm::scale(glm::mat4(1.f), glm::vec3(0.2f));
+			m_PointLightShader->Bind();
+			m_PointLightShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 
-			m_LightSourceShader->Bind();
-			m_LightSourceShader->SetUniformMat4f("u_Model", model_LightSource);
-			m_LightSourceShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+			for (unsigned int i = 0; i < m_PointLightPositions.size(); ++i)
+			{
+				glm::mat4 model_PointLight = glm::translate(glm::mat4(1.f), m_PointLightPositions[i]) *
+					glm::scale(glm::mat4(1.f), glm::vec3(0.2f));
 
-			renderer.Draw(*m_LightSourceVAO, *m_IBO, *m_LightSourceShader);
+				m_PointLightShader->SetUniformMat4f("u_Model", model_PointLight);
+
+				renderer.Draw(*m_PointLightVAO, *m_IBO, *m_PointLightShader);
+			}
+			
 		}
 
 	}
@@ -217,6 +256,8 @@ namespace test
 		ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 		ImGui::Text("Camera Front: (%.1f, %.1f, %.1f)", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
 
+		ImGui::Checkbox("Directional light", &m_bEnableDirLight);
+		ImGui::Checkbox("Point lights", &m_bEnablePointLights);
 	}
 
 	void Test_Lighting::ProcessInput(GLFWwindow* window, float deltaTime)
