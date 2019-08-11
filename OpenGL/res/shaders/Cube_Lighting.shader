@@ -31,14 +31,16 @@ struct Material
 	float shininess;
 };
 
-struct Light
+struct DirectionalLight
 {
-	vec3 position;
+	vec3 direction;
 
 	vec3 ambientIntensity;
 	vec3 diffuseIntensity;
 	vec3 specularIntensity;
 };
+
+vec3 CalculateDirectionalLight(DirectionalLight dirLight, vec3 viewDir, vec3 normal);
 
 in vec3 v_FragPos;
 in vec3 v_Normal;
@@ -46,23 +48,27 @@ in vec2 v_TexCoord;
 
 out vec4 color;
 
-uniform Material u_material;
-uniform Light u_light;
+uniform Material u_Material;
+uniform DirectionalLight u_DirLight;
 uniform vec3 u_ViewPos;
 
 void main()
 {
-	vec3 ambientColor = vec3(texture(u_material.diffuseTex, v_TexCoord)) * u_light.ambientIntensity;
+	vec3 directionalColor = CalculateDirectionalLight(u_DirLight, normalize(u_ViewPos - v_FragPos), v_Normal);
+	color = vec4(directionalColor, 1.f);
+}
 
-	vec3 lightDir = normalize(u_light.position - v_FragPos);
-	vec3 normalizedNorm = normalize(v_Normal);
-	float diff = max(dot(normalizedNorm, lightDir), 0.f);
-	vec3 diffuseColor = diff * vec3(texture(u_material.diffuseTex, v_TexCoord)) * u_light.diffuseIntensity;
+vec3 CalculateDirectionalLight(DirectionalLight dirLight, vec3 viewDir, vec3 normal)
+{
+	vec3 ambientColor = vec3(texture(u_Material.diffuseTex, v_TexCoord)) * dirLight.ambientIntensity;
 
-	vec3 viewDir = normalize(u_ViewPos - v_FragPos);
-	vec3 reflectDir = reflect(-lightDir, normalizedNorm);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.f), u_material.shininess);
-	vec3 specularColor = spec * vec3(texture(u_material.specularTex, v_TexCoord)) * u_light.specularIntensity;
+	vec3 lightDir = normalize(-dirLight.direction);
+	float diff = max(dot(normal, lightDir), 0.f);
+	vec3 diffuseColor = vec3(texture(u_Material.diffuseTex, v_TexCoord)) * diff * dirLight.diffuseIntensity;
 
-	color = vec4(ambientColor + diffuseColor + specularColor, 1.f);
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.f), u_Material.shininess);
+	vec3 specularColor = vec3(texture(u_Material.specularTex, v_TexCoord)) * spec * dirLight.specularIntensity;
+
+	return ambientColor + diffuseColor + specularColor;
 }

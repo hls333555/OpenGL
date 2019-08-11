@@ -125,15 +125,15 @@ namespace test
 
 		m_CubeShader.reset(new Shader("res/shaders/Cube_Lighting.shader"));
 		m_CubeShader->Bind();
-		m_CubeShader->SetUniform1f("u_material.shininess", 64.f);
-		m_CubeShader->SetUniform3f("u_light.ambientIntensity", 0.1f, 0.1f, 0.1f);
-		m_CubeShader->SetUniform3f("u_light.diffuseIntensity", 1.f, 1.f, 1.f);
-		m_CubeShader->SetUniform3f("u_light.specularIntensity", 0.5f, 0.5f, 0.5f);
+		m_CubeShader->SetUniform1f("u_Material.shininess", 64.f);
+		m_CubeShader->SetUniform3f("u_DirLight.ambientIntensity", 0.1f, 0.1f, 0.1f);
+		m_CubeShader->SetUniform3f("u_DirLight.diffuseIntensity", 1.f, 1.f, 1.f);
+		m_CubeShader->SetUniform3f("u_DirLight.specularIntensity", 1.f, 1.f, 1.f);
 
 		m_CubeDiffuseTexture.reset(new Texture("res/textures/Logo_D.png"));
-		m_CubeShader->SetUniform1i("u_material.diffuseTex", 0);
+		m_CubeShader->SetUniform1i("u_Material.diffuseTex", 0);
 		m_CubeSpecularTexture.reset(new Texture("res/textures/Logo_S.png"));
-		m_CubeShader->SetUniform1i("u_material.specularTex", 1);
+		m_CubeShader->SetUniform1i("u_Material.specularTex", 1);
 
 		m_LightSourceVAO.reset(new VertexArray());
 
@@ -169,7 +169,8 @@ namespace test
 
 			m_CubeShader->Bind();
 			m_CubeShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-			m_CubeShader->SetUniform3f("u_light.position", m_LightPos.x, m_LightPos.y, m_LightPos.z);
+			//m_CubeShader->SetUniform3f("u_DirLight.position", m_LightPos.x, m_LightPos.y, m_LightPos.z);
+			m_CubeShader->SetUniform3f("u_DirLight.direction", -0.2f, -1.f, -0.3f);
 			m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 
 			m_CubeDiffuseTexture->Bind();
