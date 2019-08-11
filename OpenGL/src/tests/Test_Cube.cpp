@@ -111,7 +111,7 @@ namespace test
 		m_Shader.reset(new Shader("res/shaders/Cube.shader"));
 		m_Shader->Bind();
 
-		m_Texture.reset(new Texture("res/textures/Logo.png"));
+		m_Texture.reset(new Texture("res/textures/Logo_D.png"));
 		m_Texture->Bind();
 		m_Shader->SetUniform1i("u_Texture", 0);
 

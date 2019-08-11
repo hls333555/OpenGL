@@ -45,37 +45,37 @@ namespace test
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
 
 		float vertices[] = {
-			// Positions        // Normals
+			// Positions        // Normals      // TextureCoordinates
 			// ---Begin: Top---
-			0.f,  0.5f,  0.5f,  0.f, 1.f, 0.f,  // 0
-			0.5f, 0.5f,  0.5f,  0.f, 1.f, 0.f,  // 1
-			0.5f, 0.5f,  0.f,   0.f, 1.f, 0.f,  // 2
-			0.f,  0.5f,  0.f,   0.f, 1.f, 0.f,  // 3
+			0.f,  0.5f,  0.5f,  0.f, 1.f, 0.f,  0.f, 0.f, // 0
+			0.5f, 0.5f,  0.5f,  0.f, 1.f, 0.f,  1.f, 0.f, // 1
+			0.5f, 0.5f,  0.f,   0.f, 1.f, 0.f,  1.f, 1.f, // 2
+			0.f,  0.5f,  0.f,   0.f, 1.f, 0.f,  0.f, 1.f, // 3
 			// ---Begin: Front---
-			0.f,  0.f,   0.5f,  0.f, 0.f, 1.f,  // 4
-			0.5f, 0.f,   0.5f,  0.f, 0.f, 1.f,  // 5
-			0.5f, 0.5f,  0.5f,  0.f, 0.f, 1.f,  // 6
-			0.f,  0.5f,  0.5f,  0.f, 0.f, 1.f,  // 7
+			0.f,  0.f,   0.5f,  0.f, 0.f, 1.f,  0.f, 0.f, // 4
+			0.5f, 0.f,   0.5f,  0.f, 0.f, 1.f,  1.f, 0.f, // 5
+			0.5f, 0.5f,  0.5f,  0.f, 0.f, 1.f,  1.f, 1.f, // 6
+			0.f,  0.5f,  0.5f,  0.f, 0.f, 1.f,  0.f, 1.f, // 7
 			// ---Begin: Left---
-			0.f,  0.f,   0.f,  -1.f, 0.f, 0.f,  // 8
-			0.f,  0.f,   0.5f, -1.f, 0.f, 0.f,  // 9
-			0.f,  0.5f,  0.5f, -1.f, 0.f, 0.f,  // 10
-			0.f,  0.5f,  0.f,  -1.f, 0.f, 0.f,  // 11
+			0.f,  0.f,   0.f,  -1.f, 0.f, 0.f,  0.f, 0.f, // 8
+			0.f,  0.f,   0.5f, -1.f, 0.f, 0.f,  1.f, 0.f, // 9
+			0.f,  0.5f,  0.5f, -1.f, 0.f, 0.f,  1.f, 1.f, // 10
+			0.f,  0.5f,  0.f,  -1.f, 0.f, 0.f,  0.f, 1.f, // 11
 			// ---Begin: Back---
-			0.f,  0.f,   0.f,   0.f, 0.f, -1.f, // 12
-			0.5f, 0.f,   0.f,   0.f, 0.f, -1.f, // 13
-			0.5f, 0.5f,  0.f,   0.f, 0.f, -1.f, // 14
-			0.f,  0.5f,  0.f,   0.f, 0.f, -1.f, // 15
+			0.f,  0.f,   0.f,   0.f, 0.f, -1.f, 0.f, 0.f, // 12
+			0.5f, 0.f,   0.f,   0.f, 0.f, -1.f, 1.f, 0.f, // 13
+			0.5f, 0.5f,  0.f,   0.f, 0.f, -1.f, 1.f, 1.f, // 14
+			0.f,  0.5f,  0.f,   0.f, 0.f, -1.f, 0.f, 1.f, // 15
 			// ---Begin: Right---
-			0.5f, 0.f,   0.5f,  1.f, 0.f, 0.f,  // 16 
-			0.5f, 0.f,   0.f,   1.f, 0.f, 0.f,  // 17
-			0.5f, 0.5f,  0.f,   1.f, 0.f, 0.f,  // 18
-			0.5f, 0.5f,  0.5f,  1.f, 0.f, 0.f,  // 19
+			0.5f, 0.f,   0.5f,  1.f, 0.f, 0.f,  0.f, 0.f, // 16 
+			0.5f, 0.f,   0.f,   1.f, 0.f, 0.f,  1.f, 0.f, // 17
+			0.5f, 0.5f,  0.f,   1.f, 0.f, 0.f,  1.f, 1.f, // 18
+			0.5f, 0.5f,  0.5f,  1.f, 0.f, 0.f,  0.f, 1.f, // 19
 			// ---Begin: Bottom---
-			0.f,  0.f,   0.f,   0.f, -1.f, 0.f, // 20
-			0.5f, 0.f,   0.f,   0.f, -1.f, 0.f, // 21
-			0.5f, 0.f,   0.5f,  0.f, -1.f, 0.f, // 22
-			0.f,  0.f,   0.5f,  0.f, -1.f, 0.f  // 23
+			0.f,  0.f,   0.f,   0.f, -1.f, 0.f, 0.f, 0.f, // 20
+			0.5f, 0.f,   0.f,   0.f, -1.f, 0.f, 1.f, 0.f, // 21
+			0.5f, 0.f,   0.5f,  0.f, -1.f, 0.f, 1.f, 1.f, // 22
+			0.f,  0.f,   0.5f,  0.f, -1.f, 0.f, 0.f, 1.f  // 23
 		};
 
 		unsigned int indices[] = {
@@ -101,20 +101,27 @@ namespace test
 
 		m_CubeVAO.reset(new VertexArray());
 
-		m_VBO.reset(new VertexBuffer(vertices, 144 * sizeof(float)));
+		m_VBO.reset(new VertexBuffer(vertices, 192 * sizeof(float)));
 
 		VertexBufferLayout layout_Cube;
 		layout_Cube.Push<float>(3);
 		layout_Cube.Push<float>(3);
+		layout_Cube.Push<float>(2);
 		m_CubeVAO->AddBuffer(*m_VBO, layout_Cube);
 
 		m_IBO.reset(new IndexBuffer(indices, 36));
 
 		m_CubeShader.reset(new Shader("res/shaders/Cube_Lighting.shader"));
 		m_CubeShader->Bind();
-		m_CubeShader->SetUniform3f("u_LightColor", 1.f, 1.f, 1.f);
-		m_CubeShader->SetUniform3f("u_ObjectColor", 0.f, 1.f, 1.f);
+		m_CubeShader->SetUniform1f("u_material.shininess", 64.f);
+		m_CubeShader->SetUniform3f("u_light.ambientIntensity", 0.1f, 0.1f, 0.1f);
+		m_CubeShader->SetUniform3f("u_light.diffuseIntensity", 1.f, 1.f, 1.f);
+		m_CubeShader->SetUniform3f("u_light.specularIntensity", 0.5f, 0.5f, 0.5f);
 
+		m_CubeDiffuseTexture.reset(new Texture("res/textures/Logo_D.png"));
+		m_CubeShader->SetUniform1i("u_material.diffuseTex", 0);
+		m_CubeSpecularTexture.reset(new Texture("res/textures/Logo_S.png"));
+		m_CubeShader->SetUniform1i("u_material.specularTex", 1);
 
 		m_LightSourceVAO.reset(new VertexArray());
 
@@ -123,6 +130,7 @@ namespace test
 		VertexBufferLayout layout_LightSource;
 		layout_LightSource.Push<float>(3);
 		layout_LightSource.Push<float>(3);
+		layout_LightSource.Push<float>(2);
 		m_LightSourceVAO->AddBuffer(*m_VBO, layout_LightSource);
 
 		m_IBO->Bind();
@@ -137,7 +145,9 @@ namespace test
 		ProcessInput(Test::s_Window, deltaTime);
 
 		Renderer renderer;
-
+		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
+		// Render cube
 		{
 			if (bMotionOn)
 			{
@@ -147,28 +157,28 @@ namespace test
 			glm::mat4 model_Cube = glm::rotate(glm::mat4(1.f), glm::radians(m_CubeRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				// Move cube to (0, 0, 0), put this at last
 				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, -0.25f));
+
 			m_CubeShader->Bind();
 			m_CubeShader->SetUniformMat4f("u_Model", model_Cube);
+			m_CubeShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+			m_CubeShader->SetUniform3f("u_light.position", m_LightPos.x, m_LightPos.y, m_LightPos.z);
+			m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 
+			m_CubeDiffuseTexture->Bind();
+			m_CubeSpecularTexture->Bind(1);
+
+			renderer.Draw(*m_CubeVAO, *m_IBO, *m_CubeShader);
+		}
+		// Render light source
+		{
 			glm::mat4 model_LightSource = glm::translate(glm::mat4(1.f), m_LightPos) * glm::scale(glm::mat4(1.f), glm::vec3(0.2f));
+
 			m_LightSourceShader->Bind();
 			m_LightSourceShader->SetUniformMat4f("u_Model", model_LightSource);
-		}
-		{
-			m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
-			m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
-			m_CubeShader->Bind();
-			m_CubeShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-
-			m_LightSourceShader->Bind();
 			m_LightSourceShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+
+			renderer.Draw(*m_LightSourceVAO, *m_IBO, *m_LightSourceShader);
 		}
-		
-		m_CubeShader->Bind();
-		m_CubeShader->SetUniform3f("u_LightPos", m_LightPos.x, m_LightPos.y, m_LightPos.z);
-		m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
-		renderer.Draw(*m_CubeVAO, *m_IBO, *m_CubeShader);
-		renderer.Draw(*m_LightSourceVAO, *m_IBO, *m_LightSourceShader);
 
 	}
 

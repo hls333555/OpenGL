@@ -17,8 +17,7 @@ Texture::Texture(const std::string& filePath)
 
 	// Generate texture names
 	GLCALL(glGenTextures(1, &m_RendererID));
-	
-	GLCALL(glActiveTexture(GL_TEXTURE0));
+
 	// Bind
 	GLCALL(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 

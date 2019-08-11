@@ -1268,10 +1268,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\textures\Logo.png">
+    <Image Include="res\textures\Logo_S.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\textures\Logo_Trans.png">
+    <Image Include="res\textures\Logo_D.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\textures\Logo_Trans_D.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -48,7 +48,7 @@ namespace test
 		m_Shader->Bind();
 		m_Shader->SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
 
-		m_Texture.reset(new Texture("res/textures/Logo_Trans.png"));
+		m_Texture.reset(new Texture("res/textures/Logo_Trans_D.png"));
 		m_Texture->Bind();
 		m_Shader->SetUniform1i("u_Texture", 0);
 	}
