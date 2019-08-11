@@ -117,6 +117,10 @@ namespace test
 			22, 23, 20
 		};
 
+		////////////////////////////////////////////////////////////
+		// Cube ////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////
+
 		m_CubeVAO.reset(new VertexArray());
 
 		m_VBO.reset(new VertexBuffer(vertices, 192 * sizeof(float)));
@@ -161,10 +165,23 @@ namespace test
 		m_CubeShader->SetUniform1f("u_PointLights[2].l", 0.09f);
 		m_CubeShader->SetUniform1f("u_PointLights[2].c", 1.f);
 
+		m_CubeShader->SetUniform3f("u_SpotLight.ambientIntensity", 0.f, 0.f, 0.f);
+		m_CubeShader->SetUniform3f("u_SpotLight.diffuseIntensity", 1.f, 1.f, 1.f);
+		m_CubeShader->SetUniform3f("u_SpotLight.specularIntensity", 1.f, 1.f, 1.f);
+		m_CubeShader->SetUniform1f("u_SpotLight.q", 0.032f);
+		m_CubeShader->SetUniform1f("u_SpotLight.l", 0.09f);
+		m_CubeShader->SetUniform1f("u_SpotLight.c", 1.f);
+		m_CubeShader->SetUniform1f("u_SpotLight.innerAngle", glm::cos(glm::radians(12.5f)));
+		m_CubeShader->SetUniform1f("u_SpotLight.outerAngle", glm::cos(glm::radians(15.f)));
+
 		m_CubeDiffuseTexture.reset(new Texture("res/textures/Logo_D.png"));
 		m_CubeShader->SetUniform1i("u_Material.diffuseTex", 0);
 		m_CubeSpecularTexture.reset(new Texture("res/textures/Logo_S.png"));
 		m_CubeShader->SetUniform1i("u_Material.specularTex", 1);
+
+		////////////////////////////////////////////////////////////
+		// PointLight //////////////////////////////////////////////
+		////////////////////////////////////////////////////////////
 
 		m_PointLightVAO.reset(new VertexArray());
 
@@ -200,11 +217,15 @@ namespace test
 
 			m_CubeShader->Bind();
 			m_CubeShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-			//m_CubeShader->SetUniform3f("u_DirLight.position", m_LightPos.x, m_LightPos.y, m_LightPos.z);
-			m_CubeShader->SetUniform3f("u_DirLight.direction", -0.2f, -1.f, -0.3f);
 			m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+
+			m_CubeShader->SetUniform3f("u_DirLight.direction", -0.2f, -1.f, -0.3f);
+			m_CubeShader->SetUniform3f("u_SpotLight.position", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+			m_CubeShader->SetUniform3f("u_SpotLight.direction", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
+
 			m_CubeShader->SetUniform1i("u_EnableDirLight", m_bEnableDirLight);
 			m_CubeShader->SetUniform1i("u_EnablePointLights", m_bEnablePointLights);
+			m_CubeShader->SetUniform1i("u_EnableSpotLight", m_bEnableSpotLight);
 
 			m_CubeDiffuseTexture->Bind();
 			m_CubeSpecularTexture->Bind(1);
@@ -225,7 +246,7 @@ namespace test
 			}
 
 		}
-		// Render light source
+		// Render PointLight
 		{
 			m_PointLightShader->Bind();
 			m_PointLightShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
@@ -256,8 +277,9 @@ namespace test
 		ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 		ImGui::Text("Camera Front: (%.1f, %.1f, %.1f)", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
 
-		ImGui::Checkbox("Directional light", &m_bEnableDirLight);
-		ImGui::Checkbox("Point lights", &m_bEnablePointLights);
+		ImGui::Checkbox("DirectionalLight", &m_bEnableDirLight);
+		ImGui::Checkbox("PointLights", &m_bEnablePointLights);
+		ImGui::Checkbox("FlashLight", &m_bEnableSpotLight);
 	}
 
 	void Test_Lighting::ProcessInput(GLFWwindow* window, float deltaTime)

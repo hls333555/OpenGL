@@ -51,6 +51,7 @@ namespace test
 		std::vector<glm::vec3> m_PointLightPositions;
 		bool m_bEnableDirLight = true;
 		bool m_bEnablePointLights = true;
+		bool m_bEnableSpotLight = true;
 
 		float m_CameraOrbitRadius;
 		glm::vec3 m_CameraPos;
