@@ -23,15 +23,15 @@ namespace test
 	float Test_Lighting::s_FOVMax = 90.f;
 
 	Test_Lighting::Test_Lighting()
-		: m_CameraOrbitRadius(3.f)
+		: m_LightPos(1.f, 1.f, 2.f)
+		, m_CubeRotSpeed(90.f)
+		, m_CameraOrbitRadius(3.f)
 		, m_CameraPos(DEFAULT_CAMERAPOS)
 		, m_CameraFront(DEFAULT_CAMERAFRONT)
 		, m_CameraUp(glm::vec3(0.f, 1.f, 0.f))
 		, m_CameraMoveSpeed(3.f)
 		, m_CameraRotSpeed(15.f)
 		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
-		, m_CubeRotSpeed(90.f)
-		, m_LightPos(1.f, 1.f, 2.f)
 	{
 		glEnable(GL_DEPTH_TEST);
 		// Accept fragment if it is closer to the camera than the former one
@@ -39,10 +39,22 @@ namespace test
 
 		//GLCALL(glEnable(GL_BLEND));
 		// Set this to blend transparency properly
-		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		//GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 		// WORKAROUND: C style function pointer must take a static function if it is a member function!
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
+
+		m_CubePositions = {
+			{0.f, 0.f, 0.f},
+			{1.f, 1.5f, 0.75f},
+			{0.4f, 2.3f, -1.2f},
+			{1.3f, -0.5f, 0.35f},
+			{-0.25f, 3.f, 2.2f},
+			{-1.4f, -2.1f, 0.5f},
+			{-1.7f, 1.3f, -1.6f},
+			{1.1f, -0.8f, -2.1f},
+			{-1.1f, -0.7f, -0.9f}
+		};
 
 		float vertices[] = {
 			// Positions        // Normals      // TextureCoordinates
@@ -151,15 +163,11 @@ namespace test
 		{
 			if (bMotionOn)
 			{
-				m_CubeRotation += m_CubeRotSpeed * deltaTime;
-				m_CubeRotation = m_CubeRotation > 360.f ? 0.f : m_CubeRotation;
+				m_CubeMotionRotation += m_CubeRotSpeed * deltaTime;
+				m_CubeMotionRotation = m_CubeMotionRotation > 360.f ? 0.f : m_CubeMotionRotation;
 			}
-			glm::mat4 model_Cube = glm::rotate(glm::mat4(1.f), glm::radians(m_CubeRotation), glm::vec3(0.f, 1.f, 0.f)) *
-				// Move cube to (0, 0, 0), put this at last
-				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, -0.25f));
 
 			m_CubeShader->Bind();
-			m_CubeShader->SetUniformMat4f("u_Model", model_Cube);
 			m_CubeShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 			m_CubeShader->SetUniform3f("u_light.position", m_LightPos.x, m_LightPos.y, m_LightPos.z);
 			m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
@@ -167,7 +175,21 @@ namespace test
 			m_CubeDiffuseTexture->Bind();
 			m_CubeSpecularTexture->Bind(1);
 
-			renderer.Draw(*m_CubeVAO, *m_IBO, *m_CubeShader);
+			for (unsigned int i = 0; i < m_CubePositions.size(); ++i)
+			{
+				m_CubeInitialRotation = i * 20.f;
+				glm::mat4 model_Cube = glm::translate(glm::mat4(1.f), m_CubePositions[i]) *
+					glm::rotate(glm::mat4(1.f), glm::radians(m_CubeInitialRotation), glm::vec3(1.f, 0.3f, 0.5f)) *
+					// Motion rotation
+					glm::rotate(glm::mat4(1.f), glm::radians(m_CubeMotionRotation), glm::vec3(0.f, 1.f, 0.f)) *
+					// Move cube to (0, 0, 0), put this at last
+					glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, -0.25f));
+
+				m_CubeShader->SetUniformMat4f("u_Model", model_Cube);
+
+				renderer.Draw(*m_CubeVAO, *m_IBO, *m_CubeShader);
+			}
+
 		}
 		// Render light source
 		{
@@ -285,7 +307,7 @@ namespace test
 	void Test_Lighting::ResetView()
 	{
 		bMotionOn = false;
-		m_CubeRotation = 0.f;
+		m_CubeMotionRotation = 0.f;
 
 		m_CameraPos = DEFAULT_CAMERAPOS;
 		m_CameraFront = DEFAULT_CAMERAFRONT;

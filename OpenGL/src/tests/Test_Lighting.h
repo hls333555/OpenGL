@@ -40,6 +40,14 @@ namespace test
 		std::unique_ptr<Shader> m_LightSourceShader;
 		
 		glm::mat4 m_Proj, m_View;
+		glm::vec3 m_LightPos;
+
+		std::vector<glm::vec3> m_CubePositions;
+		float m_CubeInitialRotation = 0.f;
+
+		bool bMotionOn = false;
+		float m_CubeMotionRotation = 0.f;
+		float m_CubeRotSpeed;
 
 		float m_CameraOrbitRadius;
 		glm::vec3 m_CameraPos;
@@ -50,12 +58,6 @@ namespace test
 		float m_Yaw, m_Pitch;
 		static float s_FOV, s_FOVMin, s_FOVMax;
 		double m_LastXPos = 0, m_LastYPos = 0;
-
-		bool bMotionOn = false;
-		float m_CubeRotation = 0.f;
-		float m_CubeRotSpeed;
-
-		glm::vec3 m_LightPos;
 
 	};
 
