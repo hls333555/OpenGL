@@ -22,6 +22,46 @@ bool GLLogCall(const char* file, const char* function, int line)
 	return true;
 }
 
+std::string wstring2utf8string(const std::wstring& str)
+{
+	static std::wstring_convert<std::codecvt_utf8<wchar_t> > strCnv;
+	return strCnv.to_bytes(str);
+}
+
+std::wstring utf8string2wstring(const std::string& str)
+{
+	static std::wstring_convert< std::codecvt_utf8<wchar_t> > strCnv;
+	return strCnv.from_bytes(str);
+}
+
+std::string wstring2string(const std::wstring& str, const std::string& locale)
+{
+	typedef std::codecvt_byname<wchar_t, char, std::mbstate_t> F;
+	static std::wstring_convert<F> strCnv(new F(locale));
+
+	return strCnv.to_bytes(str);
+}
+
+std::wstring string2wstring(const std::string& str, const std::string& locale)
+{
+	typedef std::codecvt_byname<wchar_t, char, std::mbstate_t> F;
+	static std::wstring_convert<F> strCnv(new F(locale));
+
+	return strCnv.from_bytes(str);
+}
+
+std::string UTF8ToDefault(const std::string& str)
+{
+	auto wstr = utf8string2wstring(str);
+	return wstring2string(wstr);
+}
+
+std::string DefaultToUTF8(const std::string& str)
+{
+	auto wstr = string2wstring(str);
+	return wstring2utf8string(wstr);
+}
+
 Renderer::Renderer()
 {
 }

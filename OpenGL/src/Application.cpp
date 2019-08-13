@@ -62,6 +62,9 @@ int main(void)
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		// The last parameter is necessary for outputing chinese characters
+		// @see Renderer.h for helper functions
+		io.Fonts->AddFontFromFileTTF("res/fonts/wqy-microhei.ttc", 16.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 		// Setup Platform/Renderer bindings

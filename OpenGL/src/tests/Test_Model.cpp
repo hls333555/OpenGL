@@ -249,7 +249,7 @@ namespace test
 			ImGui::InputText("Model Path", &modelPath);
 			if (ImGui::Button("Load Model"))
 			{
-				m_Model.reset(new Model(modelPath));
+				m_Model.reset(new Model(UTF8ToDefault(modelPath)));
 				
 				auto& meshes = m_Model->GetMeshes();
 				m_DiffusePaths.clear();
@@ -262,13 +262,14 @@ namespace test
 					auto& textures = meshes[i]->GetTextures();
 					for (const auto& texture : textures)
 					{
+						auto str = DefaultToUTF8(texture->GetFilePath());
 						switch (texture->GetType())
 						{
 						case TextureType::Diffuse:
-							m_DiffusePaths[i] = texture->GetFilePath();
+							m_DiffusePaths[i] = str;
 							break;
 						case TextureType::Specular:
-							m_SpecularPaths[i] = texture->GetFilePath();
+							m_SpecularPaths[i] = str;
 							break;
 						default:
 							ASSERT(false);
@@ -294,7 +295,7 @@ namespace test
 						std::string diffButton("Load DiffuseTexture: ");
 						if (ImGui::Button((diffButton + meshes[i]->GetName() + std::to_string(i)).c_str()))
 						{
-							meshes[i]->SetTexture(m_DiffusePaths[i], TextureType::Diffuse);
+							meshes[i]->SetTexture(UTF8ToDefault(m_DiffusePaths[i]), TextureType::Diffuse);
 						}
 
 						std::string specText("SpecularTexture: ");
@@ -302,7 +303,7 @@ namespace test
 						std::string specButton("Load SpecularTexture: ");
 						if (ImGui::Button((specButton + meshes[i]->GetName() + std::to_string(i)).c_str()))
 						{
-							meshes[i]->SetTexture(m_SpecularPaths[i], TextureType::Specular);
+							meshes[i]->SetTexture(UTF8ToDefault(m_SpecularPaths[i]), TextureType::Specular);
 						}
 					}
 				}

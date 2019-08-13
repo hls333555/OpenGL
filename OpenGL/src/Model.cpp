@@ -114,13 +114,16 @@ std::vector<std::shared_ptr<Texture>> Model::LoadMaterialTextures(aiMaterial* ma
 	std::vector<std::shared_ptr<Texture>> textures;
 	for (unsigned int i = 0; i < material->GetTextureCount(type); ++i)
 	{
-		aiString str;
-		material->GetTexture(type, i, &str);
+		aiString aiStr;
+		material->GetTexture(type, i, &aiStr);
+
+		auto str = UTF8ToDefault(std::string(aiStr.C_Str()));
+
 		bool bSkip = false;
 		for (const auto& loadedTexture : m_LoadedTextures)
 		{
 			// If current processed texture is already loaded, skip loading...
-			if (loadedTexture->GetFilePath().c_str() == m_Dir + str.C_Str())
+			if (loadedTexture->GetFilePath().c_str() == m_Dir + str)
 			{
 				textures.push_back(loadedTexture);
 				bSkip = true;
@@ -129,7 +132,7 @@ std::vector<std::shared_ptr<Texture>> Model::LoadMaterialTextures(aiMaterial* ma
 		}
 		if (!bSkip)
 		{
-			std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_Dir, str.C_Str(), texType);
+			std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_Dir, str, texType);
 			textures.push_back(texture);
 			m_LoadedTextures.push_back(texture);
 		}
