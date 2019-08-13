@@ -263,19 +263,22 @@ namespace test
 
 	void Test_Lighting::OnImGuiRender()
 	{
-		ImGui::Text("Use RMB, ALT+RMB and WSAD to transform the camera!");
-		ImGui::Checkbox("Motion", &bMotionOn);
-		ImGui::SliderFloat("Motion Speed", &m_CubeRotSpeed, 10.f, 360.f);
-		if (ImGui::Button("Reset View"))
+		ImGui::Text(u8"使用RMB，ALT+RMB，MMB和WSAD来变换相机视角！");
+		ImGui::Text(u8"相机位置: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+		ImGui::Text(u8"相机朝向: (%.1f, %.1f, %.1f)", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
+
+		if (ImGui::Button(u8"重置视角"))
 		{
 			ResetView();
 		}
-		ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
-		ImGui::Text("Camera Front: (%.1f, %.1f, %.1f)", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
 
-		ImGui::Checkbox("DirectionalLight", &m_bEnableDirLight);
-		ImGui::Checkbox("PointLights", &m_bEnablePointLights);
-		ImGui::Checkbox("FlashLight", &m_bEnableSpotLight);
+		ImGui::Checkbox(u8"观赏模式", &bMotionOn);
+		ImGui::SliderFloat(u8"运动速度", &m_CubeRotSpeed, 10.f, 360.f);
+
+		ImGui::Checkbox(u8"启用平行光", &m_bEnableDirLight);
+		ImGui::Checkbox(u8"点光源", &m_bEnablePointLights);
+		ImGui::Checkbox(u8"启用聚光灯（手电筒）", &m_bEnableSpotLight);
+
 	}
 
 	void Test_Lighting::ProcessInput(GLFWwindow* window, float deltaTime)

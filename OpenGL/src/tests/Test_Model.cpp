@@ -227,27 +227,27 @@ namespace test
 
 	void Test_Model::OnImGuiRender()
 	{
-		if (ImGui::CollapsingHeader("Camera"))
+		if (ImGui::CollapsingHeader(u8"相机"))
 		{
-			ImGui::Text("Use RMB, ALT+RMB and WSAD to transform the camera!");
-			ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
-			ImGui::Text("Camera Front: (%.1f, %.1f, %.1f)", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
+			ImGui::Text(u8"使用RMB，ALT+RMB，MMB和WSAD来变换相机视角！");
+			ImGui::Text(u8"相机位置: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+			ImGui::Text(u8"相机朝向: (%.1f, %.1f, %.1f)", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
 
-			if (ImGui::Button("Reset View"))
+			if (ImGui::Button(u8"重置视角"))
 			{
 				ResetView();
 			}
 		}
 		
-		if (ImGui::CollapsingHeader("Model"))
+		if (ImGui::CollapsingHeader(u8"模型"))
 		{
 			////////////////////////////////////////////////////////////
 			// Model Loading ///////////////////////////////////////////
 			////////////////////////////////////////////////////////////
 
 			static std::string modelPath("res/meshes/");
-			ImGui::InputText("Model Path", &modelPath);
-			if (ImGui::Button("Load Model"))
+			ImGui::InputText(u8"模型路径", &modelPath);
+			if (ImGui::Button(u8"导入模型"))
 			{
 				m_Model.reset(new Model(UTF8ToDefault(modelPath)));
 				
@@ -281,7 +281,7 @@ namespace test
 
 			if (m_Model)
 			{
-				if (ImGui::CollapsingHeader("Textures"))
+				if (ImGui::CollapsingHeader(u8"贴图"))
 				{
 					////////////////////////////////////////////////////////////
 					// Textures Loading ////////////////////////////////////////
@@ -290,17 +290,17 @@ namespace test
 					auto& meshes = m_Model->GetMeshes();
 					for (unsigned int i = 0; i < meshes.size(); ++i)
 					{
-						std::string diffText("DiffuseTexture: ");
+						std::string diffText(u8"漫反射贴图：");
 						ImGui::InputText((diffText + meshes[i]->GetName() + std::to_string(i)).c_str(), &m_DiffusePaths[i]);
-						std::string diffButton("Load DiffuseTexture: ");
+						std::string diffButton(u8"导入漫反射贴图: ");
 						if (ImGui::Button((diffButton + meshes[i]->GetName() + std::to_string(i)).c_str()))
 						{
 							meshes[i]->SetTexture(UTF8ToDefault(m_DiffusePaths[i]), TextureType::Diffuse);
 						}
 
-						std::string specText("SpecularTexture: ");
+						std::string specText(u8"高光贴图：");
 						ImGui::InputText((specText + meshes[i]->GetName() + std::to_string(i)).c_str(), &m_SpecularPaths[i]);
-						std::string specButton("Load SpecularTexture: ");
+						std::string specButton(u8"导入高光贴图：");
 						if (ImGui::Button((specButton + meshes[i]->GetName() + std::to_string(i)).c_str()))
 						{
 							meshes[i]->SetTexture(UTF8ToDefault(m_SpecularPaths[i]), TextureType::Specular);
@@ -309,30 +309,30 @@ namespace test
 				}
 			}
 
-			ImGui::Checkbox("Motion", &m_bMotionOn);
-			ImGui::SliderFloat("Motion Speed", &m_ModelRotSpeed, 10.f, 360.f);
+			ImGui::Checkbox(u8"观赏模式", &m_bMotionOn);
+			ImGui::SliderFloat(u8"运动速度", &m_ModelRotSpeed, 10.f, 360.f);
 
-			ImGui::InputFloat("Model Scale", &m_ModelScale, 0.01f, 1.0f, "%.2f");
+			ImGui::InputFloat(u8"模型缩放", &m_ModelScale, 0.01f, 1.0f, "%.2f");
 		}
 
-		if (ImGui::CollapsingHeader("Lighting"))
+		if (ImGui::CollapsingHeader(u8"光照"))
 		{
 			////////////////////////////////////////////////////////////
 			// Lighting Controls ///////////////////////////////////////
 			////////////////////////////////////////////////////////////
 
-			ImGui::SliderFloat("Ambient Intensity", &m_AmbientIntensity.x, 0.f, 1.f);
+			ImGui::SliderFloat(u8"环境光强度", &m_AmbientIntensity.x, 0.f, 1.f);
 			m_AmbientIntensity.z = m_AmbientIntensity.y = m_AmbientIntensity.x;
 
-			ImGui::SliderFloat("Diffuse Intensity", &m_DiffuseIntensity.x, 0.f, 1.f);
+			ImGui::SliderFloat(u8"漫反射强度", &m_DiffuseIntensity.x, 0.f, 1.f);
 			m_DiffuseIntensity.z = m_DiffuseIntensity.y = m_DiffuseIntensity.x;
 
-			ImGui::SliderFloat("Specular Intensity", &m_SpecularIntensity.x, 0.f, 1.f);
+			ImGui::SliderFloat(u8"高光强度", &m_SpecularIntensity.x, 0.f, 1.f);
 			m_SpecularIntensity.z = m_SpecularIntensity.y = m_SpecularIntensity.x;
 
-			ImGui::SliderFloat("Shininess", &m_Shininess, 16.f, 256.f);
+			ImGui::SliderFloat(u8"光泽度", &m_Shininess, 16.f, 256.f);
 
-			ImGui::Checkbox("Draw Dummy PointLights", &m_bDrawPointLights);
+			ImGui::Checkbox(u8"使点光源可见", &m_bDrawPointLights);
 		}
 
 		//static bool bOpen = true;
