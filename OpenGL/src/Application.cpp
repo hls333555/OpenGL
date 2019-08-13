@@ -32,7 +32,7 @@ int main(void)
 	const char* glsl_version = "#version 330";
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow((int)WINDOW_WIDTH, (int)WINDOW_HEIGHT, u8"OpenGLäÖÈ¾Æ÷", NULL, NULL);
+	window = glfwCreateWindow((int)WINDOW_WIDTH, (int)WINDOW_HEIGHT, "OpenGL Renderer", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
