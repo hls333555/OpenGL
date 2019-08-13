@@ -2,9 +2,18 @@
 
 #include "imgui/imgui.h"
 
+#include "Renderer.h"
+
 namespace test
 {
 	GLFWwindow* test::Test::s_Window = nullptr;
+
+	Test::~Test()
+	{
+		// You should disable previously enabled things here!
+		GLCALL(glDisable(GL_DEPTH_TEST));
+		GLCALL(glDisable(GL_BLEND));
+	}
 
 	TestMenu::TestMenu(Test*& currentTest)
 		: m_CurrentTest(currentTest)
@@ -23,4 +32,5 @@ namespace test
 			}
 		}
 	}
+	
 }

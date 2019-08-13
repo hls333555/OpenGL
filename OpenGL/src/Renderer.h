@@ -6,8 +6,8 @@ class VertexArray;
 class IndexBuffer;
 class Shader;
 
-#define WINDOW_WIDTH 960.f
-#define WINDOW_HEIGHT 540.f
+#define WINDOW_WIDTH	1280.f
+#define WINDOW_HEIGHT	720.f
 
 #define ASSERT(x) if(!(x)) __debugbreak();
 // You should ensure "DEBUG" exists in PreprocessorDefinations of Debug configuration

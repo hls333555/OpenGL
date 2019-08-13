@@ -37,10 +37,6 @@ namespace test
 		// Accept fragment if it is closer to the camera than the former one
 		glDepthFunc(GL_LESS);
 
-		//GLCALL(glEnable(GL_BLEND));
-		// Set this to blend transparency properly
-		//GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
 		// WORKAROUND: C style function pointer must take a static function if it is a member function!
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
 

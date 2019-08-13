@@ -12,7 +12,7 @@ namespace test
 	{
 	public:
 		Test() {}
-		virtual ~Test() {}
+		virtual ~Test();
 
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnRender() {}

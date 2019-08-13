@@ -2,13 +2,31 @@
 
 #include "stb_image/stb_image.h"
 
-Texture::Texture(const std::string& filePath)
+Texture::Texture(const std::string& filePath, TextureType type)
 	: m_RendererID(0)
 	, m_FilePath(filePath)
 	, m_LocalBuffer(nullptr)
 	, m_Width(0)
 	, m_Height(0)
 	, m_BPP(0)
+	, m_Type(type)
+{
+	LoadTexture(filePath);
+}
+
+Texture::Texture(const std::string& mainFilePath, const std::string& subFilePath, TextureType type)
+	: m_RendererID(0)
+	, m_FilePath(mainFilePath + subFilePath)
+	, m_LocalBuffer(nullptr)
+	, m_Width(0)
+	, m_Height(0)
+	, m_BPP(0)
+	, m_Type(type)
+{
+	LoadTexture(mainFilePath + subFilePath);
+}
+
+void Texture::LoadTexture(const std::string& filePath)
 {
 	// OpenGL expects the texture pixels to start at the bottom-left(0,0) instead of the top-left
 	// Typically, when png image is being loaded, it is stored in scanlines from the top to the bottom of the image, so we need to flip it on load
@@ -25,8 +43,9 @@ Texture::Texture(const std::string& filePath)
 	// This is the minification filter that how the texture will be resampled down if it needs to be rendered smaller per pixel
 	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	// Set this to GL_CALMP_TO_EDGE will cause issues sometimes
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	GLCALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
 	// Send OpenGL the texture data
 	GLCALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8/*8-bits per channel*/, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));

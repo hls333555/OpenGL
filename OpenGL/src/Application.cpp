@@ -14,6 +14,7 @@
 #include "tests/Test_Texture2D.h"
 #include "tests/Test_Cube.h"
 #include "tests/Test_Lighting.h"
+#include "tests/Test_Model.h"
 
 int main(void)
 {
@@ -31,7 +32,7 @@ int main(void)
 	const char* glsl_version = "#version 330";
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(960, 540, "Hello World", NULL, NULL);
+	window = glfwCreateWindow((int)WINDOW_WIDTH, (int)WINDOW_HEIGHT, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -74,6 +75,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_Texture2D>("2D Texture");
 		testMenu->RegisterTest<test::Test_Cube>("3D Cube");
 		testMenu->RegisterTest<test::Test_Lighting>("Lighting Scene");
+		testMenu->RegisterTest<test::Test_Model>("Model Demo");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
