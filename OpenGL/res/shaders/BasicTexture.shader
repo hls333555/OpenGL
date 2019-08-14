@@ -2,17 +2,19 @@
 #version 330 core
 
 // Position vertex attribute data
-layout(location = 0) in vec4 a_Position;
+layout(location = 0) in vec3 a_Position;
 // Texture coordinate vertex attribute data
 layout(location = 1) in vec2 a_TexCoord;
+
 // Pass texture coordinate out to the fragment shader
 out vec2 v_TexCoord;
 
-uniform mat4 u_MVP;
+uniform mat4 u_ViewProjection;
+uniform mat4 u_Model;
 
 void main()
 {
-	gl_Position =  u_MVP * a_Position;
+	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.f);
 	v_TexCoord = a_TexCoord;
 }	
 
@@ -21,10 +23,10 @@ void main()
 
 // Passed in texture coordinate
 in vec2 v_TexCoord;
-// The output color
-layout(location = 0) out vec4 color;
 
-uniform vec4 u_Color;
+// The output color
+out vec4 color;
+
 uniform sampler2D u_Texture;
 
 void main()

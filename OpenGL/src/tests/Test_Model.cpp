@@ -39,10 +39,6 @@ namespace test
 		, m_CameraRotSpeed(15.f)
 		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
 	{
-		glEnable(GL_DEPTH_TEST);
-		// Accept fragment if it is closer to the camera than the former one
-		glDepthFunc(GL_LESS);
-
 		// WORKAROUND: C style function pointer must take a static function if it is a member function!
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
 
@@ -109,6 +105,10 @@ namespace test
 			22, 23, 20
 		};
 
+		glEnable(GL_DEPTH_TEST);
+		// Accept fragment if it is closer to the camera than the former one
+		glDepthFunc(GL_LESS);
+
 		////////////////////////////////////////////////////////////
 		// Model ///////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////
@@ -129,8 +129,9 @@ namespace test
 
 		m_PointLightIBO.reset(new IndexBuffer(indices, 36));
 
-		m_PointLightShader.reset(new Shader("res/shaders/LightSource.shader"));
+		m_PointLightShader.reset(new Shader("res/shaders/BasicColor.shader"));
 		m_PointLightShader->Bind();
+		m_PointLightShader->SetUniform4f("u_Color", 1.f, 1.f, 1.f, 1.f);
 
 	}
 
@@ -149,17 +150,14 @@ namespace test
 				m_ModelMotionRotation += m_ModelRotSpeed * deltaTime;
 				m_ModelMotionRotation = m_ModelMotionRotation > 360.f ? 0.f : m_ModelMotionRotation;
 			}
-
-			m_ModelShader->Bind();
-			m_ModelShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-			m_ModelShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
-
 			glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(0.f, -2.35f, 0.f)) *
 				// Motion rotation
 				glm::rotate(glm::mat4(1.f), glm::radians(m_ModelMotionRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				glm::scale(glm::mat4(1.f), glm::vec3(m_ModelScale));
-
+			m_ModelShader->Bind();
 			m_ModelShader->SetUniformMat4f("u_Model", model);
+			m_ModelShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+			m_ModelShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 
 			m_ModelShader->SetUniform1f("u_Material.shininess", m_Shininess);
 
@@ -215,7 +213,6 @@ namespace test
 			{
 				glm::mat4 model_PointLight = glm::translate(glm::mat4(1.f), m_PointLightPositions[i]) *
 					glm::scale(glm::mat4(1.f), glm::vec3(0.2f));
-
 				m_PointLightShader->SetUniformMat4f("u_Model", model_PointLight);
 
 				renderer.Draw(*m_PointLightVAO, *m_PointLightIBO, *m_PointLightShader);

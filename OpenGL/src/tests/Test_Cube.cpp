@@ -32,48 +32,40 @@ namespace test
 		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
 		, m_ModelRotSpeed(90.f)
 	{
-		glEnable(GL_DEPTH_TEST);
-		// Accept fragment if it is closer to the camera than the former one
-		glDepthFunc(GL_LESS);
-
-		GLCALL(glEnable(GL_BLEND));
-		// Set this to blend transparency properly
-		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
 		// WORKAROUND: C style function pointer must take a static function if it is a member function!
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
 
 		float vertices[] = {
 			// ---Begin: Top---
-			0.f,  0.5f,  0.5f, 0.f, 0.f, // 0
-			0.5f, 0.5f,  0.5f, 1.f, 0.f, // 1
-			0.5f, 0.5f,  0.f,  1.f, 1.f, // 2
-			0.f,  0.5f,  0.f,  0.f, 1.f, // 3
+			0.f,  0.5f,  0.5f, // 0
+			0.5f, 0.5f,  0.5f, // 1
+			0.5f, 0.5f,  0.f,  // 2
+			0.f,  0.5f,  0.f,  // 3
 			// ---Begin: Front---
-			0.f,  0.f,   0.5f, 0.f, 0.f, // 4
-			0.5f, 0.f,   0.5f, 1.f, 0.f, // 5
-			0.5f, 0.5f,  0.5f, 1.f, 1.f, // 6
-			0.f,  0.5f,  0.5f, 0.f, 1.f, // 7
+			0.f,  0.f,   0.5f, // 4
+			0.5f, 0.f,   0.5f, // 5
+			0.5f, 0.5f,  0.5f, // 6
+			0.f,  0.5f,  0.5f, // 7
 			// ---Begin: Left---
-			0.f,  0.f,   0.f,  0.f, 0.f, // 8
-			0.f,  0.f,   0.5f, 1.f, 0.f, // 9
-			0.f,  0.5f,  0.5f, 1.f, 1.f, // 10
-			0.f,  0.5f,  0.f,  0.f, 1.f, // 11
+			0.f,  0.f,   0.f,  // 8
+			0.f,  0.f,   0.5f, // 9
+			0.f,  0.5f,  0.5f, // 10
+			0.f,  0.5f,  0.f,  // 11
 			// ---Begin: Back---
-			0.f,  0.f,   0.f,  0.f, 0.f, // 12
-			0.5f, 0.f,   0.f,  1.f, 0.f, // 13
-			0.5f, 0.5f,  0.f,  1.f, 1.f, // 14
-			0.f,  0.5f,  0.f,  0.f, 1.f, // 15
+			0.f,  0.f,   0.f,  // 12
+			0.5f, 0.f,   0.f,  // 13
+			0.5f, 0.5f,  0.f,  // 14
+			0.f,  0.5f,  0.f,  // 15
 			// ---Begin: Right---
-			0.5f, 0.f,   0.5f, 0.f, 0.f, // 16 
-			0.5f, 0.f,   0.f,  1.f, 0.f, // 17
-			0.5f, 0.5f,  0.f,  1.f, 1.f, // 18
-			0.5f, 0.5f,  0.5f, 0.f, 1.f, // 19
-			// ---Begin: Bottom---
-			0.f,  0.f,   0.f,  0.f, 0.f, // 20
-			0.5f, 0.f,   0.f,  1.f, 0.f, // 21
-			0.5f, 0.f,   0.5f, 1.f, 1.f, // 22
-			0.f,  0.f,   0.5f, 0.f, 1.f  // 23
+			0.5f, 0.f,   0.5f, // 16 
+			0.5f, 0.f,   0.f,  // 17
+			0.5f, 0.5f,  0.f,  // 18
+			0.5f, 0.5f,  0.5f, // 19
+			// ---Begin: Botto---
+			0.f,  0.f,   0.f,  // 20
+			0.5f, 0.f,   0.f,  // 21
+			0.5f, 0.f,   0.5f, // 22
+			0.f,  0.f,   0.5f  // 23
 		};
 
 		unsigned int indices[] = {
@@ -97,23 +89,21 @@ namespace test
 			22, 23, 20
 		};
 
+		glEnable(GL_DEPTH_TEST);
+		// Accept fragment if it is closer to the camera than the former one
+		glDepthFunc(GL_LESS);
+
 		m_VAO.reset(new VertexArray());
 
-		m_VBO.reset(new VertexBuffer(vertices, 120 * sizeof(float)));
+		m_VBO.reset(new VertexBuffer(vertices, 72 * sizeof(float)));
 
 		VertexBufferLayout layout;
 		layout.Push<float>(3);
-		layout.Push<float>(2);
 		m_VAO->AddBuffer(*m_VBO, layout);
 
 		m_IBO.reset(new IndexBuffer(indices, 36));
 
 		m_Shader.reset(new Shader("res/shaders/Cube.shader"));
-		m_Shader->Bind();
-
-		m_Texture.reset(new Texture("res/textures/Logo_D.png"));
-		m_Texture->Bind();
-		m_Shader->SetUniform1i("u_Texture", 0);
 
 	}
 
@@ -122,7 +112,8 @@ namespace test
 		ProcessInput(Test::s_Window, deltaTime);
 
 		Renderer renderer;
-
+		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
 		{
 			if (bMotionOn)
 			{
@@ -132,15 +123,12 @@ namespace test
 			glm::mat4 model = glm::rotate(glm::mat4(1.f), glm::radians(m_ModelRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				// Move cube to (0, 0, 0), put this at last
 				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, -0.25f));
+			m_Shader->Bind();
 			m_Shader->SetUniformMat4f("u_Model", model);
-		}
-		{
-			m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
-			m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
 			m_Shader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-		}
 
-		renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
+			renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
+		}
 
 	}
 

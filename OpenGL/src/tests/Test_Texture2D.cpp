@@ -44,32 +44,34 @@ namespace test
 
 		m_IBO.reset(new IndexBuffer(indices, 6));
 
-		m_Shader.reset(new Shader("res/shaders/Basic.shader"));
-		m_Shader->Bind();
-		m_Shader->SetUniform4f("u_Color", 0.f, 1.f, 1.f, 1.f);
+		m_Shader.reset(new Shader("res/shaders/BasicTexture.shader"));
 
 		m_Texture.reset(new Texture("res/textures/Logo_Trans_D.png"));
-		m_Texture->Bind();
+		m_Shader->Bind();
 		m_Shader->SetUniform1i("u_Texture", 0);
 	}
 
 	void Test_Texture2D::OnRender()
 	{
 		Renderer renderer;
-
 		{
-			glm::mat4 model = glm::translate(glm::mat4(1.f), m_TranslationA);
-			glm::mat4 mvp = m_Proj * m_View * model;
+			m_Texture->Bind();
 
-			m_Shader->SetUniformMat4f("u_MVP", mvp);
+			glm::mat4 modelA = glm::translate(glm::mat4(1.f), m_TranslationA);
+			m_Shader->Bind();
+			m_Shader->SetUniformMat4f("u_Model", modelA);
+			m_Shader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+
 			renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 		}
-
 		{
-			glm::mat4 model = glm::translate(glm::mat4(1.f), m_TranslationB);
-			glm::mat4 mvp = m_Proj * m_View * model;
+			m_Texture->Bind();
 
-			m_Shader->SetUniformMat4f("u_MVP", mvp);
+			glm::mat4 modelB = glm::translate(glm::mat4(1.f), m_TranslationB);
+			m_Shader->Bind();
+			m_Shader->SetUniformMat4f("u_Model", modelB);
+			m_Shader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+
 			renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 		}
 	}
