@@ -13,6 +13,7 @@ namespace test
 		// You should disable previously enabled things here!
 		GLCALL(glDisable(GL_DEPTH_TEST));
 		GLCALL(glDisable(GL_BLEND));
+		GLCALL(glDisable(GL_STENCIL_TEST));
 	}
 
 	TestMenu::TestMenu(Test*& currentTest)

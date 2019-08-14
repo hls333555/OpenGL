@@ -96,6 +96,7 @@
     <ClCompile Include="src\tests\Test_Cube.cpp" />
     <ClCompile Include="src\tests\Test_Lighting.cpp" />
     <ClCompile Include="src\tests\Test_Model.cpp" />
+    <ClCompile Include="src\tests\Test_Stencil.cpp" />
     <ClCompile Include="src\tests\Test_Texture2D.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
@@ -112,10 +113,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
-    <None Include="res\shaders\Basic.shader" />
+    <None Include="res\shaders\BasicTexture.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\Cube_Lighting.shader" />
-    <None Include="res\shaders\LightSource.shader" />
+    <None Include="res\shaders\BasicColor.shader" />
     <None Include="res\shaders\Model.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl" />
     <None Include="src\vendor\assimp\include\assimp\material.inl" />
@@ -269,6 +270,7 @@
     <ClInclude Include="src\tests\Test_Cube.h" />
     <ClInclude Include="src\tests\Test_Lighting.h" />
     <ClInclude Include="src\tests\Test_Model.h" />
+    <ClInclude Include="src\tests\Test_Stencil.h" />
     <ClInclude Include="src\tests\Test_Texture2D.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\vendor\assimp\include\assimp\ai_assert.h" />

@@ -87,10 +87,12 @@
     <ClCompile Include="src\vendor\imgui\misc\cpp\imgui_stdlib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\Test_Stencil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
-    <None Include="res\shaders\Basic.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl">
       <Filter>Header Files</Filter>
     </None>
@@ -488,7 +490,6 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="res\shaders\Cube.shader" />
-    <None Include="res\shaders\LightSource.shader" />
     <None Include="res\shaders\Cube_Lighting.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl">
       <Filter>Header Files</Filter>
@@ -515,6 +516,8 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="res\shaders\Model.shader" />
+    <None Include="res\shaders\BasicColor.shader" />
+    <None Include="res\shaders\BasicTexture.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1550,6 +1553,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\vendor\imgui\misc\cpp\imgui_stdlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\Test_Stencil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

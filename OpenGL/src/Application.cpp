@@ -15,6 +15,7 @@
 #include "tests/Test_Cube.h"
 #include "tests/Test_Lighting.h"
 #include "tests/Test_Model.h"
+#include "tests/Test_Stencil.h"
 
 int main(void)
 {
@@ -79,6 +80,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_Cube>("3D Cube");
 		testMenu->RegisterTest<test::Test_Lighting>("Lighting Scene");
 		testMenu->RegisterTest<test::Test_Model>("Model Demo");
+		testMenu->RegisterTest<test::Test_Stencil>("Outline Effects");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
@@ -110,6 +112,8 @@ int main(void)
 					delete currentTest;
 					currentTest = testMenu;
 				}
+				// Currently imgui will not show with stencil test enabled
+				GLCALL(glDisable(GL_STENCIL_TEST));
 				currentTest->OnImGuiRender();
 				ImGui::End();
 			}
