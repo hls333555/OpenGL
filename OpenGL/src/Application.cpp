@@ -16,6 +16,7 @@
 #include "tests/Test_Lighting.h"
 #include "tests/Test_Model.h"
 #include "tests/Test_Stencil.h"
+#include "tests/Test_FaceCulling.h"
 
 int main(void)
 {
@@ -81,6 +82,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_Lighting>("Lighting Scene");
 		testMenu->RegisterTest<test::Test_Model>("Model Demo");
 		testMenu->RegisterTest<test::Test_Stencil>("Outline Effects");
+		testMenu->RegisterTest<test::Test_FaceCulling>("Face Culling");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
