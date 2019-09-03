@@ -43,8 +43,8 @@ namespace test
 		};
 
 		unsigned int planeIndices[] = {
-			1, 2, 4,
-			4, 2, 3
+			0, 1, 3,
+			3, 1, 2
 		};
 
 		float cubeVertices[] = {
