@@ -152,6 +152,7 @@ namespace test
 		m_ScreenShader->Bind();
 		m_ScreenShader->SetUniform1i("u_ScreenTexture", 0);
 
+		// TODO: needs abstraction
 		// Create framebuffer
 		glCreateFramebuffers(1, &m_FBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);

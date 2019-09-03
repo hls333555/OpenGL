@@ -94,6 +94,7 @@
     <ClCompile Include="src\tests\Test.cpp" />
     <ClCompile Include="src\tests\Test_ClearColor.cpp" />
     <ClCompile Include="src\tests\Test_Cube.cpp" />
+    <ClCompile Include="src\tests\Test_Cubemap.cpp" />
     <ClCompile Include="src\tests\Test_FaceCulling.cpp" />
     <ClCompile Include="src\tests\Test_FrameBuffer.cpp" />
     <ClCompile Include="src\tests\Test_Lighting.cpp" />
@@ -120,7 +121,9 @@
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\Cube_Lighting.shader" />
     <None Include="res\shaders\BasicColor.shader" />
+    <None Include="res\shaders\EnvironmentMapping.shader" />
     <None Include="res\shaders\Model.shader" />
+    <None Include="res\shaders\Skybox.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl" />
     <None Include="src\vendor\assimp\include\assimp\material.inl" />
     <None Include="src\vendor\assimp\include\assimp\matrix3x3.inl" />
@@ -271,6 +274,7 @@
     <ClInclude Include="src\tests\Test.h" />
     <ClInclude Include="src\tests\Test_ClearColor.h" />
     <ClInclude Include="src\tests\Test_Cube.h" />
+    <ClInclude Include="src\tests\Test_Cubemap.h" />
     <ClInclude Include="src\tests\Test_FaceCulling.h" />
     <ClInclude Include="src\tests\Test_FrameBuffer.h" />
     <ClInclude Include="src\tests\Test_Lighting.h" />

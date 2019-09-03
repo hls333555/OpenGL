@@ -1,9 +1,10 @@
-#include "Test_FaceCulling.h"
+#include "Test_Cubemap.h"
 
 #include "VertexBufferLayout.h"
 
 #include "imgui/imgui.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include "stb_image/stb_image.h"
 
 #include <iostream>
 
@@ -18,11 +19,11 @@
 
 namespace test
 {
-	float Test_FaceCulling::s_FOV = DEFAULT_FOV;
-	float Test_FaceCulling::s_FOVMin = 1.f;
-	float Test_FaceCulling::s_FOVMax = 90.f;
+	float Test_Cubemap::s_FOV = DEFAULT_FOV;
+	float Test_Cubemap::s_FOVMin = 1.f;
+	float Test_Cubemap::s_FOVMax = 90.f;
 
-	Test_FaceCulling::Test_FaceCulling()
+	Test_Cubemap::Test_Cubemap()
 		: m_CameraOrbitRadius(3.f)
 		, m_CameraPos(DEFAULT_CAMERAPOS)
 		, m_CameraFront(DEFAULT_CAMERAFRONT)
@@ -49,35 +50,35 @@ namespace test
 
 		float cubeVertices[] = {
 			// ---Begin: Top---
-			0.f,  0.5f,  0.5f, 0.f, 0.f, // 0
-			0.5f, 0.5f,  0.5f, 1.f, 0.f, // 1
-			0.5f, 0.5f,  0.f,  1.f, 1.f, // 2
-			0.f,  0.5f,  0.f,  0.f, 1.f, // 3
-			// ---Begin: Front---
-			0.f,  0.f,   0.5f, 0.f, 0.f, // 4
-			0.5f, 0.f,   0.5f, 1.f, 0.f, // 5
-			0.5f, 0.5f,  0.5f, 1.f, 1.f, // 6
-			0.f,  0.5f,  0.5f, 0.f, 1.f, // 7
-			// ---Begin: Left---
-			0.f,  0.f,   0.f,  0.f, 0.f, // 8
-			0.f,  0.f,   0.5f, 1.f, 0.f, // 9
-			0.f,  0.5f,  0.5f, 1.f, 1.f, // 10
-			0.f,  0.5f,  0.f,  0.f, 1.f, // 11
-			// ---Begin: Back---
-			0.5f, 0.f,   0.f,  0.f, 0.f, // 12
-			0.f,  0.f,   0.f,  1.f, 0.f, // 13
-			0.f,  0.5f,  0.f,  1.f, 1.f, // 14
-			0.5f, 0.5f,  0.f,  0.f, 1.f, // 15
-			// ---Begin: Right---
-			0.5f, 0.f,   0.5f, 0.f, 0.f, // 16 
-			0.5f, 0.f,   0.f,  1.f, 0.f, // 17
-			0.5f, 0.5f,  0.f,  1.f, 1.f, // 18
-			0.5f, 0.5f,  0.5f, 0.f, 1.f, // 19
-			// ---Begin: Bottom---
-			0.f,  0.f,   0.f,  0.f, 0.f, // 20
-			0.5f, 0.f,   0.f,  1.f, 0.f, // 21
-			0.5f, 0.f,   0.5f, 1.f, 1.f, // 22
-			0.f,  0.f,   0.5f, 0.f, 1.f  // 23
+			0.f,  0.5f,  0.5f, 0.f, 1.f, 0.f,  // 0
+			0.5f, 0.5f,  0.5f, 0.f, 1.f, 0.f,  // 1
+			0.5f, 0.5f,  0.f,  0.f, 1.f, 0.f,  // 2
+			0.f,  0.5f,  0.f,  0.f, 1.f, 0.f,  // 3
+			// ---Begin: Front--
+			0.f,  0.f,   0.5f, 0.f, 0.f, 1.f,  // 4
+			0.5f, 0.f,   0.5f, 0.f, 0.f, 1.f,  // 5
+			0.5f, 0.5f,  0.5f, 0.f, 0.f, 1.f,  // 6
+			0.f,  0.5f,  0.5f, 0.f, 0.f, 1.f,  // 7
+			// ---Begin: Left--
+			0.f,  0.f,   0.f,  -1.f, 0.f, 0.f, // 8
+			0.f,  0.f,   0.5f, -1.f, 0.f, 0.f, // 9
+			0.f,  0.5f,  0.5f, -1.f, 0.f, 0.f, // 10
+			0.f,  0.5f,  0.f,  -1.f, 0.f, 0.f, // 11
+			// ---Begin: Back--
+			0.5f, 0.f,   0.f,  0.f, 0.f, -1.f, // 12
+			0.f,  0.f,   0.f,  0.f, 0.f, -1.f, // 13
+			0.f,  0.5f,  0.f,  0.f, 0.f, -1.f, // 14
+			0.5f, 0.5f,  0.f,  0.f, 0.f, -1.f, // 15
+			// ---Begin: Right--
+			0.5f, 0.f,   0.5f, 1.f, 0.f, 0.f,  // 16 
+			0.5f, 0.f,   0.f,  1.f, 0.f, 0.f,  // 17
+			0.5f, 0.5f,  0.f,  1.f, 0.f, 0.f,  // 18
+			0.5f, 0.5f,  0.5f, 1.f, 0.f, 0.f,  // 19
+			// ---Begin: Bottom--
+			0.f,  0.f,   0.f,  0.f, -1.f, 0.f, // 20
+			0.5f, 0.f,   0.f,  0.f, -1.f, 0.f, // 21
+			0.5f, 0.f,   0.5f, 0.f, -1.f, 0.f, // 22
+			0.f,  0.f,   0.5f, 0.f, -1.f, 0.f, // 23
 		};
 
 		// Make sure vertices are draw in counter-clockwise order for default face culling to work properly
@@ -102,9 +103,38 @@ namespace test
 			23, 21, 22
 		};
 
-		GLCALL(glEnable(GL_BLEND));
-		// Set this to blend transparency properly
-		GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+		float skyboxVertices[] = {
+			// ---Begin: Top---
+			-10.f,  10.f, -10.f, // 0
+			 10.f,  10.f, -10.f, // 1
+			 10.f,  10.f,  10.f, // 2
+			-10.f,  10.f,  10.f, // 3
+			// ---Begin: Front---
+			 10.f, -10.f,  10.f, // 4
+			-10.f, -10.f,  10.f, // 5
+			-10.f,  10.f,  10.f, // 6
+			 10.f,  10.f,  10.f, // 7
+			// ---Begin: Left---
+			-10.f, -10.f,  10.f, // 8
+			-10.f, -10.f, -10.f, // 9
+			-10.f,  10.f, -10.f, // 10
+			-10.f,  10.f,  10.f, // 11
+			// ---Begin: Back---
+			-10.f, -10.f, -10.f, // 12
+			 10.f, -10.f, -10.f, // 13
+			 10.f,  10.f, -10.f, // 14
+			-10.f,  10.f, -10.f, // 15
+			// ---Begin: Right---
+			 10.f, -10.f, -10.f, // 16 
+			 10.f, -10.f,  10.f, // 17
+			 10.f,  10.f,  10.f, // 18
+			 10.f,  10.f, -10.f, // 19
+			// ---Begin: Bottom---
+			-10.f, -10.f,  10.f, // 20
+			 10.f, -10.f,  10.f, // 21
+			 10.f, -10.f, -10.f, // 22
+			-10.f, -10.f, -10.f  // 23
+		};
 
 		glEnable(GL_DEPTH_TEST);
 		// Accept fragment if it is closer to the camera than the former one
@@ -122,31 +152,86 @@ namespace test
 		m_FloorShader->Bind();
 		m_FloorShader->SetUniform4f("u_Color", 1.f, 1.f, 1.f, 1.f);
 
-		m_LogoShader.reset(new Shader("res/shaders/BasicTexture.shader"));
-		m_LogoTexture.reset(new Texture("res/textures/Logo_Trans_D.png"));
-		m_LogoShader->Bind();
-		m_LogoShader->SetUniform1i("u_Texture", 0);
-
 		m_CubeVAO.reset(new VertexArray());
-		m_CubeVBO.reset(new VertexBuffer(cubeVertices, 120 * sizeof(float)));
+		m_CubeVBO.reset(new VertexBuffer(cubeVertices, 144 * sizeof(float)));
 		VertexBufferLayout cubeLayout;
 		cubeLayout.Push<float>(3);
-		cubeLayout.Push<float>(2);
+		cubeLayout.Push<float>(3);
 		m_CubeVAO->AddBuffer(*m_CubeVBO, cubeLayout);
 		m_CubeIBO.reset(new IndexBuffer(cubeIndices, 36));
 
-		m_CubeShader.reset(new Shader("res/shaders/Cube.shader"));
+		m_CubeShader.reset(new Shader("res/shaders/EnvironmentMapping.shader"));
+		m_CubeShader->Bind();
+		m_CubeShader->SetUniform1i("u_CubemapTexture", 0);
+
+		const char* cubemapPaths[6] = {
+			"res/textures/cubemaps/skybox/posx.jpg",
+			"res/textures/cubemaps/skybox/negx.jpg",
+			"res/textures/cubemaps/skybox/posy.jpg",
+			"res/textures/cubemaps/skybox/negy.jpg",
+			"res/textures/cubemaps/skybox/posz.jpg",
+			"res/textures/cubemaps/skybox/negz.jpg"
+		};
+		// Create cubemap texture
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_SkyboxTexture);
+		// This is necessary!
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_SkyboxTexture);
+		//stbi_set_flip_vertically_on_load(1);
+		int width, height, numChannels;
+		for (int i = 0; i < 6; ++i)
+		{
+			unsigned char* data = stbi_load(cubemapPaths[i], &width, &height, &numChannels, 0);
+			ASSERT(data);
+
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+
+			glTextureParameteri(m_SkyboxTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(m_SkyboxTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// This must be set to prevent visible edges
+			glTextureParameteri(m_SkyboxTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTextureParameteri(m_SkyboxTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTextureParameteri(m_SkyboxTexture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		}
+
+		m_SkyboxVAO.reset(new VertexArray());
+		m_SkyboxVBO.reset(new VertexBuffer(skyboxVertices, 72 * sizeof(float)));
+		VertexBufferLayout skyboxLayout;
+		skyboxLayout.Push<float>(3);
+		m_SkyboxVAO->AddBuffer(*m_SkyboxVBO, skyboxLayout);
+
+		m_SkyboxShader.reset(new Shader("res/shaders/Skybox.shader"));
+		m_SkyboxShader->Bind();
+		m_SkyboxShader->SetUniform1i("u_CubemapTexture", 0);
 
 	}
 
-	void Test_FaceCulling::OnUpdate(float deltaTime)
+	void Test_Cubemap::OnUpdate(float deltaTime)
 	{
 		ProcessInput(Test::s_Window, deltaTime);
 
 		Renderer renderer;
 		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+		glEnable(GL_CULL_FACE);
+		// With depth-masking disabled it won't write anything to the depth buffer,
+		// allowing all subsequently drawn scenery to be in front of the skybox
+		glDepthMask(GL_FALSE);
+		// Render skybox at first
+		{
+			// Keep the translation part of the view matrix unchanged so movement does not affect the skybox's position vectors
+			m_View = glm::lookAt(DEFAULT_CAMERAPOS, DEFAULT_CAMERAPOS + m_CameraFront, m_CameraUp);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_SkyboxTexture);
+			m_SkyboxShader->Bind();
+			m_SkyboxShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+
+			renderer.Draw(*m_SkyboxVAO, *m_CubeIBO, *m_SkyboxShader);
+		}
+		glDisable(GL_CULL_FACE);
+		glDepthMask(GL_TRUE);
 		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
 		// Render floor
+		if(bShowFloor)
 		{
 			glm::mat4 model_floor = glm::translate(glm::mat4(1.f), glm::vec3(0.f, -0.3f, 0.f)) *
 				glm::rotate(glm::mat4(1.f), glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f)) *
@@ -167,33 +252,21 @@ namespace test
 		glEnable(GL_CULL_FACE);
 		// Render cube
 		{
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_SkyboxTexture);
 			m_CubeShader->Bind();
 			m_CubeShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 			glm::mat4 model_Cube = glm::rotate(glm::mat4(1.f), glm::radians(m_CubeRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				// Move cube to (0, 0, 0), put this at last
 				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, -0.25f));
 			m_CubeShader->SetUniformMat4f("u_Model", model_Cube);
+			m_CubeShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 
 			renderer.Draw(*m_CubeVAO, *m_CubeIBO, *m_CubeShader);
-		}
-		// For 2D plane, we do not want it to be culled
-		glDisable(GL_CULL_FACE);
-		// Render transparent logo
-		{
-			m_LogoTexture->Bind();
-			m_LogoShader->Bind();
-			m_LogoShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-			glm::mat4 model_Grass = glm::translate(glm::mat4(1.f), glm::vec3(-1.f, 0.f, 0.f)) *
-				// Move cube to (0, 0, 0), put this at last
-				glm::translate(glm::mat4(1.f), glm::vec3(-0.25f, -0.25f, -0.25f));
-			m_LogoShader->SetUniformMat4f("u_Model", model_Grass);
-
-			renderer.Draw(*m_PlaneVAO, *m_PlaneIBO, *m_LogoShader);
 		}
 
 	}
 
-	void Test_FaceCulling::OnImGuiRender()
+	void Test_Cubemap::OnImGuiRender()
 	{
 		ImGui::Text(u8"使用RMB，ALT+RMB，MMB和WSAD来变换相机视角！");
 		ImGui::Text(u8"相机位置: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
@@ -204,12 +277,14 @@ namespace test
 			ResetView();
 		}
 
+		ImGui::Checkbox(u8"显示地板", &bShowFloor);
+
 		ImGui::Checkbox(u8"观赏模式", &bMotionOn);
 		ImGui::SliderFloat(u8"运动速度", &m_ModelRotSpeed, 10.f, 360.f);
 
 	}
 
-	void Test_FaceCulling::ProcessInput(GLFWwindow* window, float deltaTime)
+	void Test_Cubemap::ProcessInput(GLFWwindow* window, float deltaTime)
 	{
 		////////////////////////////////////////////////////////////
 		// Camera: Focus Object (Center) ///////////////////////////
@@ -290,12 +365,12 @@ namespace test
 
 	}
 
-	void Test_FaceCulling::OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset)
+	void Test_Cubemap::OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 	{
 		s_FOV = glm::clamp(float(s_FOV - yoffset), s_FOVMin, s_FOVMax);
 	}
 
-	void Test_FaceCulling::ResetView()
+	void Test_Cubemap::ResetView()
 	{
 		bMotionOn = false;
 		m_CubeRotation = 0.f;
