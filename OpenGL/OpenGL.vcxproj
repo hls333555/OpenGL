@@ -95,6 +95,7 @@
     <ClCompile Include="src\tests\Test_ClearColor.cpp" />
     <ClCompile Include="src\tests\Test_Cube.cpp" />
     <ClCompile Include="src\tests\Test_FaceCulling.cpp" />
+    <ClCompile Include="src\tests\Test_FrameBuffer.cpp" />
     <ClCompile Include="src\tests\Test_Lighting.cpp" />
     <ClCompile Include="src\tests\Test_Model.cpp" />
     <ClCompile Include="src\tests\Test_Stencil.cpp" />
@@ -114,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+    <None Include="res\shaders\BasicScreenTexture.shader" />
     <None Include="res\shaders\BasicTexture.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\Cube_Lighting.shader" />
@@ -270,6 +272,7 @@
     <ClInclude Include="src\tests\Test_ClearColor.h" />
     <ClInclude Include="src\tests\Test_Cube.h" />
     <ClInclude Include="src\tests\Test_FaceCulling.h" />
+    <ClInclude Include="src\tests\Test_FrameBuffer.h" />
     <ClInclude Include="src\tests\Test_Lighting.h" />
     <ClInclude Include="src\tests\Test_Model.h" />
     <ClInclude Include="src\tests\Test_Stencil.h" />

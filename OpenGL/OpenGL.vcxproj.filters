@@ -93,6 +93,9 @@
     <ClCompile Include="src\tests\Test_FaceCulling.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\Test_FrameBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
@@ -521,6 +524,7 @@
     <None Include="res\shaders\Model.shader" />
     <None Include="res\shaders\BasicColor.shader" />
     <None Include="res\shaders\BasicTexture.shader" />
+    <None Include="res\shaders\BasicScreenTexture.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1562,6 +1566,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\Test_FaceCulling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\Test_FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
