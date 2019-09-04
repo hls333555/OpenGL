@@ -114,6 +114,7 @@ namespace test
 		////////////////////////////////////////////////////////////
 
 		m_ModelShader.reset(new Shader("res/shaders/Model.shader"));
+		m_ModelNormalShader.reset(new Shader("res/shaders/ModelNormal.shader"));
 
 		////////////////////////////////////////////////////////////
 		// PointLight //////////////////////////////////////////////
@@ -142,7 +143,6 @@ namespace test
 		Renderer renderer;
 		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
-		// Render model
 		if (m_Model)
 		{
 			if (m_bMotionOn)
@@ -154,56 +154,69 @@ namespace test
 				// Motion rotation
 				glm::rotate(glm::mat4(1.f), glm::radians(m_ModelMotionRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				glm::scale(glm::mat4(1.f), glm::vec3(m_ModelScale));
-			m_ModelShader->Bind();
-			m_ModelShader->SetUniformMat4f("u_Model", model);
-			m_ModelShader->SetUniformMat4f("u_View", m_View);
-			m_ModelShader->SetUniformMat4f("u_Projection", m_Proj);
-			m_ModelShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
-			m_ModelShader->SetUniform1f("u_Time", (float)glfwGetTime());
+			// Render model
+			{
+				m_ModelShader->Bind();
+				m_ModelShader->SetUniformMat4f("u_Model", model);
+				m_ModelShader->SetUniformMat4f("u_View", m_View);
+				m_ModelShader->SetUniformMat4f("u_Projection", m_Proj);
+				m_ModelShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 
-			m_ModelShader->SetUniform1f("u_Material.shininess", m_Shininess);
+				m_ModelShader->SetUniform1f("u_Material.shininess", m_Shininess);
 
-			m_ModelShader->SetUniform3f("u_PointLights[0].position", m_PointLightPositions[0].x, m_PointLightPositions[0].y, m_PointLightPositions[0].z);
-			m_ModelShader->SetUniform3f("u_PointLights[0].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[0].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[0].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
-			m_ModelShader->SetUniform1f("u_PointLights[0].q", 0.032f);
-			m_ModelShader->SetUniform1f("u_PointLights[0].l", 0.09f);
-			m_ModelShader->SetUniform1f("u_PointLights[0].c", 1.f);
+				m_ModelShader->SetUniform3f("u_PointLights[0].position", m_PointLightPositions[0].x, m_PointLightPositions[0].y, m_PointLightPositions[0].z);
+				m_ModelShader->SetUniform3f("u_PointLights[0].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[0].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[0].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
+				m_ModelShader->SetUniform1f("u_PointLights[0].q", 0.032f);
+				m_ModelShader->SetUniform1f("u_PointLights[0].l", 0.09f);
+				m_ModelShader->SetUniform1f("u_PointLights[0].c", 1.f);
 
-			m_ModelShader->SetUniform3f("u_PointLights[1].position", m_PointLightPositions[1].x, m_PointLightPositions[1].y, m_PointLightPositions[1].z);
-			m_ModelShader->SetUniform3f("u_PointLights[1].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[1].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[1].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
-			m_ModelShader->SetUniform1f("u_PointLights[1].q", 0.032f);
-			m_ModelShader->SetUniform1f("u_PointLights[1].l", 0.09f);
-			m_ModelShader->SetUniform1f("u_PointLights[1].c", 1.f);
+				m_ModelShader->SetUniform3f("u_PointLights[1].position", m_PointLightPositions[1].x, m_PointLightPositions[1].y, m_PointLightPositions[1].z);
+				m_ModelShader->SetUniform3f("u_PointLights[1].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[1].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[1].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
+				m_ModelShader->SetUniform1f("u_PointLights[1].q", 0.032f);
+				m_ModelShader->SetUniform1f("u_PointLights[1].l", 0.09f);
+				m_ModelShader->SetUniform1f("u_PointLights[1].c", 1.f);
 
-			m_ModelShader->SetUniform3f("u_PointLights[2].position", m_PointLightPositions[2].x, m_PointLightPositions[2].y, m_PointLightPositions[2].z);
-			m_ModelShader->SetUniform3f("u_PointLights[2].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[2].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[2].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
-			m_ModelShader->SetUniform1f("u_PointLights[2].q", 0.032f);
-			m_ModelShader->SetUniform1f("u_PointLights[2].l", 0.09f);
-			m_ModelShader->SetUniform1f("u_PointLights[2].c", 1.f);
+				m_ModelShader->SetUniform3f("u_PointLights[2].position", m_PointLightPositions[2].x, m_PointLightPositions[2].y, m_PointLightPositions[2].z);
+				m_ModelShader->SetUniform3f("u_PointLights[2].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[2].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[2].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
+				m_ModelShader->SetUniform1f("u_PointLights[2].q", 0.032f);
+				m_ModelShader->SetUniform1f("u_PointLights[2].l", 0.09f);
+				m_ModelShader->SetUniform1f("u_PointLights[2].c", 1.f);
 
-			m_ModelShader->SetUniform3f("u_PointLights[3].position", m_PointLightPositions[3].x, m_PointLightPositions[3].y, m_PointLightPositions[3].z);
-			m_ModelShader->SetUniform3f("u_PointLights[3].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[3].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[3].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
-			m_ModelShader->SetUniform1f("u_PointLights[3].q", 0.032f);
-			m_ModelShader->SetUniform1f("u_PointLights[3].l", 0.09f);
-			m_ModelShader->SetUniform1f("u_PointLights[3].c", 1.f);
+				m_ModelShader->SetUniform3f("u_PointLights[3].position", m_PointLightPositions[3].x, m_PointLightPositions[3].y, m_PointLightPositions[3].z);
+				m_ModelShader->SetUniform3f("u_PointLights[3].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[3].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[3].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
+				m_ModelShader->SetUniform1f("u_PointLights[3].q", 0.032f);
+				m_ModelShader->SetUniform1f("u_PointLights[3].l", 0.09f);
+				m_ModelShader->SetUniform1f("u_PointLights[3].c", 1.f);
 
-			m_ModelShader->SetUniform3f("u_PointLights[4].position", m_PointLightPositions[4].x, m_PointLightPositions[4].y, m_PointLightPositions[4].z);
-			m_ModelShader->SetUniform3f("u_PointLights[4].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[4].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
-			m_ModelShader->SetUniform3f("u_PointLights[4].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
-			m_ModelShader->SetUniform1f("u_PointLights[4].q", 0.032f);
-			m_ModelShader->SetUniform1f("u_PointLights[4].l", 0.09f);
-			m_ModelShader->SetUniform1f("u_PointLights[4].c", 1.f);
+				m_ModelShader->SetUniform3f("u_PointLights[4].position", m_PointLightPositions[4].x, m_PointLightPositions[4].y, m_PointLightPositions[4].z);
+				m_ModelShader->SetUniform3f("u_PointLights[4].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[4].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
+				m_ModelShader->SetUniform3f("u_PointLights[4].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
+				m_ModelShader->SetUniform1f("u_PointLights[4].q", 0.032f);
+				m_ModelShader->SetUniform1f("u_PointLights[4].l", 0.09f);
+				m_ModelShader->SetUniform1f("u_PointLights[4].c", 1.f);
 
-			m_Model->Draw(*m_ModelShader);
+				m_Model->Draw(*m_ModelShader);
+			}
+			// Render model normals
+			if (m_bRenderModelNormals)
+			{
+				m_ModelNormalShader->Bind();
+				m_ModelNormalShader->SetUniformMat4f("u_Model", model);
+				m_ModelNormalShader->SetUniformMat4f("u_View", m_View);
+				m_ModelNormalShader->SetUniformMat4f("u_Projection", m_Proj);
+
+				m_Model->Draw(*m_ModelNormalShader);
+			}
+			
 		}
 		// Render PointLight
 		if(m_bDrawPointLights)
@@ -312,6 +325,7 @@ namespace test
 			ImGui::SliderFloat(u8"运动速度", &m_ModelRotSpeed, 10.f, 360.f);
 
 			ImGui::InputFloat(u8"模型缩放", &m_ModelScale, 0.01f, 1.0f, "%.2f");
+			ImGui::Checkbox(u8"绘制法线", &m_bRenderModelNormals);
 		}
 
 		if (ImGui::CollapsingHeader(u8"光照"))

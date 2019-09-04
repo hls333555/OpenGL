@@ -28,11 +28,13 @@ namespace test
 	private:
 		std::unique_ptr<Model> m_Model;
 		std::unique_ptr<Shader> m_ModelShader;
+		std::unique_ptr<Shader> m_ModelNormalShader;
 
 		bool m_bMotionOn = false;
 		float m_ModelMotionRotation = 0.f;
 		float m_ModelRotSpeed;
 		float m_ModelScale;
+		bool m_bRenderModelNormals = false;
 
 		std::vector<std::string> m_DiffusePaths, m_SpecularPaths;
 

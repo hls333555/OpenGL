@@ -125,6 +125,7 @@
     <None Include="res\shaders\BasicColor.shader" />
     <None Include="res\shaders\EnvironmentMapping.shader" />
     <None Include="res\shaders\Model.shader" />
+    <None Include="res\shaders\ModelNormal.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl" />
     <None Include="src\vendor\assimp\include\assimp\material.inl" />
