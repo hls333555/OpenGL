@@ -156,8 +156,10 @@ namespace test
 				glm::scale(glm::mat4(1.f), glm::vec3(m_ModelScale));
 			m_ModelShader->Bind();
 			m_ModelShader->SetUniformMat4f("u_Model", model);
-			m_ModelShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+			m_ModelShader->SetUniformMat4f("u_View", m_View);
+			m_ModelShader->SetUniformMat4f("u_Projection", m_Proj);
 			m_ModelShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+			m_ModelShader->SetUniform1f("u_Time", (float)glfwGetTime());
 
 			m_ModelShader->SetUniform1f("u_Material.shininess", m_Shininess);
 
