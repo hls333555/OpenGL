@@ -19,6 +19,7 @@
 #include "tests/Test_FaceCulling.h"
 #include "tests/Test_FrameBuffer.h"
 #include "tests/Test_Cubemap.h"
+#include "tests/Test_GeometryShader.h"
 
 int main(void)
 {
@@ -87,6 +88,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_FaceCulling>("Face Culling");
 		testMenu->RegisterTest<test::Test_FrameBuffer>("FrameBuffer (PostProcessing)");
 		testMenu->RegisterTest<test::Test_Cubemap>("Cubemap");
+		testMenu->RegisterTest<test::Test_GeometryShader>("Geometry Shader");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))

@@ -5,6 +5,13 @@
 
 #include "glm/glm.hpp"
 
+struct ShaderSources
+{
+	std::string vertexShaderSource;
+	std::string geometryShaderSource;
+	std::string fragmentShaderSource;
+};
+
 class Shader
 {
 public:
@@ -24,8 +31,8 @@ public:
 
 private:
 	/** Read shaders from shader file. */
-	void ParseShader(const std::string& filePath, std::string& vertexShaderSource, std::string& fragmentShaderSource);
-	int CreateShader(const std::string& vertexShaderSource, const std::string& fragmentShaderSource);
+	void ParseShader(const std::string& filePath, ShaderSources& outShaderSources);
+	int CreateShader(const ShaderSources& shaderSources);
 	unsigned int CompileShader(unsigned int type, const std::string& source);
 
 	int GetUniformLocation(const std::string& name) const;

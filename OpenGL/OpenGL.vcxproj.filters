@@ -99,6 +99,9 @@
     <ClCompile Include="src\tests\Test_Cubemap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\Test_GeometryShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
@@ -530,6 +533,7 @@
     <None Include="res\shaders\BasicScreenTexture.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="res\shaders\EnvironmentMapping.shader" />
+    <None Include="res\shaders\BasicGS.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1577,6 +1581,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\Test_Cubemap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\Test_GeometryShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

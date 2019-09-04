@@ -43,6 +43,13 @@ std::string UTF8ToDefault(const std::string& str);
  */
 std::string DefaultToUTF8(const std::string& str);
 
+enum class DrawMode
+{
+	POINTS = 0x0000,
+	LINES = 0x0001,
+	TRIANGLES = 0x0004,
+};
+
 class Renderer
 {
 public:
@@ -50,7 +57,7 @@ public:
 	~Renderer();
 
 	void Clear() const;
-	void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+	void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader, DrawMode mode = DrawMode::TRIANGLES) const;
 
 private:
 

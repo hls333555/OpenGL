@@ -75,13 +75,14 @@ void Renderer::Clear() const
 	GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
-void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const
+void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader, DrawMode mode) const
 {
 	shader.Bind();
 	va.Bind();
 	ib.Bind();
+
 	// Issue a drawcall
 	// The count is actually the number of indices rather than vertices
 	// Since index buffer is already bound to GL_ELEMENT_ARRAY_BUFFER, we do not need to specify the pointer to indices
-	GLCALL(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
+	GLCALL(glDrawElements((GLenum)mode, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 }
