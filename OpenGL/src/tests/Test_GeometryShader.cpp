@@ -8,8 +8,6 @@
 namespace test
 {
 	Test_GeometryShader::Test_GeometryShader()
-		: m_Proj(glm::ortho(0.f, WINDOW_WIDTH, 0.f, WINDOW_HEIGHT, -1.f, 1.f))
-		, m_View(glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, 0.f)))
 	{
 		float positions[] = {
 			// Position   // Colors

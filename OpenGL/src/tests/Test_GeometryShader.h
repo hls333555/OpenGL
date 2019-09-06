@@ -29,7 +29,6 @@ namespace test
 		std::unique_ptr<IndexBuffer> m_IBO;
 		std::unique_ptr<Shader> m_Shader;
 
-		glm::mat4 m_Proj, m_View;
 	};
 
 }
