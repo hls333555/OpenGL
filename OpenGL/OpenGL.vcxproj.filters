@@ -538,7 +538,8 @@
     <None Include="res\shaders\EnvironmentMapping.shader" />
     <None Include="res\shaders\BasicGS.shader" />
     <None Include="res\shaders\ModelNormal.shader" />
-    <None Include="res\shaders\BasicColor_Instancing.shader" />
+    <None Include="res\shaders\BasicColor_Instanced.shader" />
+    <None Include="res\shaders\BasicModel.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1592,6 +1593,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\Test_Instancing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="res\shaders\Model_Instanced.shader">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

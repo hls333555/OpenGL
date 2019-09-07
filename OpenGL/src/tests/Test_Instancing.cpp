@@ -5,6 +5,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 #include "VertexBufferLayout.h"
+#include "Mesh.h"
 
 // Put it at last!
 #include <GLFW/glfw3.h>
@@ -48,7 +49,7 @@ namespace test
 		layout.Push<float>(3);
 		m_VAO->AddBuffer(*m_VBO, layout);
 		m_IBO.reset(new IndexBuffer(indices, 6));
-		m_Shader.reset(new Shader("res/shaders/BasicColor_Instancing.shader"));
+		m_Shader.reset(new Shader("res/shaders/BasicColor_Instanced.shader"));
 
 		// TODO: needs abstraction for instancing
 		m_TranslationsVBO.reset(new VertexBuffer(translations, 100 * sizeof(glm::vec2)));
@@ -64,10 +65,10 @@ namespace test
 	{
 		Renderer renderer;
 		{
+			// TODO: needs abstraction for instancing
 			m_Shader->Bind();
 			m_VAO->Bind();
 			m_IBO->Bind();
-			// TODO: needs abstraction for instancing
 			GLCALL(glDrawElementsInstanced(GL_TRIANGLES, m_IBO->GetCount(), GL_UNSIGNED_INT, nullptr, 100));
 		}
 	}
@@ -84,9 +85,9 @@ namespace test
 
 	Test_AdvancedInstancing::Test_AdvancedInstancing()
 		: m_PlanetRotSpeed(90.f)
-		, m_RockOrbitRadius(30.f)
+		, m_RockOrbitRadius(70.f)
 		, m_RockOrbitSpeed(0.1f)
-		, m_RandomOffsetBound(2.5f)
+		, m_RandomOffsetBound(10.f)
 		, m_CameraOrbitRadius(50.f)
 		, m_CameraPos(DEFAULT_CAMERAPOS)
 		, m_CameraFront(DEFAULT_CAMERAFRONT)
@@ -105,9 +106,10 @@ namespace test
 		glEnable(GL_CULL_FACE);
 
 		m_PlanetModel.reset(new Model("res/meshes/Planet/planet.obj"));
-		m_ModelShader.reset(new Shader("res/shaders/BasicTexture.shader"));
+		m_PlanetShader.reset(new Shader("res/shaders/BasicModel.shader"));
 
 		m_RockModel.reset(new Model("res/meshes/Rock/rock.obj"));
+		m_RockShader.reset(new Shader("res/shaders/Model_Instanced.shader"));
 
 		srand((unsigned int)glfwGetTime());
 		// Initialize random positions of rocks
@@ -138,6 +140,29 @@ namespace test
 			m_RockMatrices[i] = trans * m_RockTransforms[i].rot * m_RockTransforms[i].scale;
 		}
 
+		// TODO: needs abstraction for instancing
+		m_RockMatricesVBO.reset(new VertexBuffer(m_RockMatrices, ROCK_AMOUNT * sizeof(glm::mat4)));
+		m_RockMatricesVBO->Bind();
+		for (const auto& mesh : m_RockModel->GetMeshes())
+		{
+			auto& VAO = mesh->GetVAO();
+			VAO->Bind();
+			// Since the max amount of data allowed as a vertex attribute is equal to a vec4 and mat4 is 4 vec4s
+			// we have to reserve 4 vertex attributes for the matrix
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+			glVertexAttribDivisor(3, 1);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)sizeof(glm::vec4));
+			glVertexAttribDivisor(4, 1);
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+			glVertexAttribDivisor(5, 1);
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+			glVertexAttribDivisor(6, 1);
+		}
+
 	}
 
 	void Test_AdvancedInstancing::OnUpdate(float deltaTime)
@@ -145,7 +170,7 @@ namespace test
 		ProcessInput(Test::s_Window, deltaTime);
 
 		Renderer renderer;
-		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 1000.f);
 		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
 		if (m_bMotionOn)
 		{
@@ -160,17 +185,18 @@ namespace test
 				glm::rotate(glm::mat4(1.f), glm::radians(m_PlanetMotionRotation), glm::vec3(0.f, 1.f, 0.f)) *
 				glm::scale(glm::mat4(1.f), glm::vec3(3.f));
 
-			m_ModelShader->Bind();
-			m_ModelShader->SetUniformMat4f("u_Model", model);
-			m_ModelShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+			m_PlanetShader->Bind();
+			m_PlanetShader->SetUniformMat4f("u_Model", model);
+			m_PlanetShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 
-			m_PlanetModel->Draw(*m_ModelShader);
+			m_PlanetModel->Draw(*m_PlanetShader);
 		}
-		// Render rocks without instancing method
+		// Render rocks with instancing method
 		{
-			for (unsigned int i = 0; i < ROCK_AMOUNT; ++i)
+			if (m_bMotionOn)
 			{
-				if (m_bMotionOn)
+				// TODO: update it with ROCK_AMOUNT being a quite large value every frame will cause a terrible framerate drop
+				for (unsigned int i = 0; i < ROCK_AMOUNT; ++i)
 				{
 					m_RockTransforms[i].Angle += m_RockOrbitSpeed * deltaTime;
 					float x = m_RockOrbitRadius * cos(m_RockTransforms[i].Angle) + m_RockTransforms[i].offsetX;
@@ -184,9 +210,44 @@ namespace test
 					m_RockMatrices[i] = trans * m_RockTransforms[i].rot * m_RockTransforms[i].scale;
 				}
 
-				m_ModelShader->SetUniformMat4f("u_Model", m_RockMatrices[i]);
-				
-				m_RockModel->Draw(*m_ModelShader);
+				// TODO: needs abstraction for instancing
+				m_RockMatricesVBO.reset(new VertexBuffer(m_RockMatrices, ROCK_AMOUNT * sizeof(glm::mat4)));
+				m_RockMatricesVBO->Bind();
+				for (const auto& mesh : m_RockModel->GetMeshes())
+				{
+					auto& VAO = mesh->GetVAO();
+					VAO->Bind();
+					// Since the max amount of data allowed as a vertex attribute is equal to a vec4 and mat4 is 4 vec4s
+					// we have to reserve 4 vertex attributes for the matrix
+					glEnableVertexAttribArray(3);
+					glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)0);
+					glVertexAttribDivisor(3, 1);
+					glEnableVertexAttribArray(4);
+					glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)sizeof(glm::vec4));
+					glVertexAttribDivisor(4, 1);
+					glEnableVertexAttribArray(5);
+					glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(2 * sizeof(glm::vec4)));
+					glVertexAttribDivisor(5, 1);
+					glEnableVertexAttribArray(6);
+					glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(3 * sizeof(glm::vec4)));
+					glVertexAttribDivisor(6, 1);
+				}
+			}
+
+			m_RockShader->Bind();
+			m_RockShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+			m_RockShader->SetUniform1i("u_Texture", 0);
+			// TODO: needs abstraction for instancing
+			for (const auto& mesh : m_RockModel->GetMeshes())
+			{
+				for (unsigned int i = 0; i < mesh->GetTextures().size(); ++i)
+				{
+					mesh->GetTextures()[i]->Bind(i);
+				}
+				mesh->GetVAO()->Bind();
+				mesh->GetIBO()->Bind();
+
+				GLCALL(glDrawElementsInstanced(GL_TRIANGLES, mesh->GetIBO()->GetCount(), GL_UNSIGNED_INT, nullptr, ROCK_AMOUNT));
 			}
 		}
 

@@ -118,8 +118,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
-    <None Include="res\shaders\BasicColor_Instancing.shader" />
+    <None Include="res\shaders\BasicColor_Instanced.shader" />
     <None Include="res\shaders\BasicGS.shader" />
+    <None Include="res\shaders\BasicModel.shader" />
     <None Include="res\shaders\BasicScreenTexture.shader" />
     <None Include="res\shaders\BasicTexture.shader" />
     <None Include="res\shaders\Cube.shader" />
@@ -271,6 +272,7 @@
     <None Include="src\vendor\glm\gtx\wrap.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="res\shaders\Model_Instanced.shader" />
     <ClInclude Include="src\IndexBuffer.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />

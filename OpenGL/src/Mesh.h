@@ -28,6 +28,8 @@ public:
 
 	inline const std::string& GetName() const { return m_Name; }
 	inline const std::vector<std::shared_ptr<Texture>>& GetTextures() const { return m_Textures; }
+	inline const std::unique_ptr<VertexArray>& GetVAO() const { return m_VAO; }
+	inline const std::unique_ptr<IndexBuffer>& GetIBO() const { return m_IBO; }
 
 	void Draw(const Shader& shader);
 

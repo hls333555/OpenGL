@@ -58,13 +58,15 @@ namespace test
 
 	private:
 		std::unique_ptr<Model> m_PlanetModel;
-		std::unique_ptr<Shader> m_ModelShader;
+		std::unique_ptr<Shader> m_PlanetShader;
 		std::unique_ptr<Model> m_RockModel;
+		std::unique_ptr<Shader> m_RockShader;
+		std::unique_ptr<VertexBuffer> m_RockMatricesVBO;
 
 		bool m_bMotionOn = false;
 		float m_PlanetMotionRotation = 0.f;
 		float m_PlanetRotSpeed;
-#define ROCK_AMOUNT 1000
+#define ROCK_AMOUNT 10000
 		float m_RockOrbitRadius;
 		float m_RockOrbitSpeed;
 		/** Offsets will be randomized within [-m_RandomOffsetBound, m_RandomOffsetBound] */
