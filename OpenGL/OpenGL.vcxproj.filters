@@ -105,6 +105,9 @@
     <ClCompile Include="src\tests\Test_Instancing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\Test_Shadow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
@@ -540,6 +543,8 @@
     <None Include="res\shaders\ModelNormal.shader" />
     <None Include="res\shaders\BasicColor_Instanced.shader" />
     <None Include="res\shaders\BasicModel.shader" />
+    <None Include="res\shaders\DepthMap.shader" />
+    <None Include="res\shaders\LightingWithShadows.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1596,6 +1601,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="res\shaders\Model_Instanced.shader">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\Test_Shadow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

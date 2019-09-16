@@ -21,6 +21,7 @@
 #include "tests/Test_Cubemap.h"
 #include "tests/Test_GeometryShader.h"
 #include "tests/Test_Instancing.h"
+#include "tests/Test_Shadow.h"
 
 int main(void)
 {
@@ -92,6 +93,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_GeometryShader>("Geometry Shader");
 		testMenu->RegisterTest<test::Test_BasicInstancing>("Basic Instancing");
 		testMenu->RegisterTest<test::Test_AdvancedInstancing>("Advanced Instancing");
+		testMenu->RegisterTest<test::Test_DirectionalShadowMapping>("Directional Shadow Mapping");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
