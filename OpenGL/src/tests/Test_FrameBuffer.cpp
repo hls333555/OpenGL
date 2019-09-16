@@ -161,7 +161,7 @@ namespace test
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureBuffer);
 		glTextureParameteri(m_TextureBuffer, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_TextureBuffer, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// It will crash here if internalformat is set to GL_RGB
+		// It will crash here if internalformat is set to GL_RGB - explicit size must be specified
 		glTextureStorage2D(m_TextureBuffer, 1, GL_RGB8, (int)WINDOW_WIDTH, (int)WINDOW_HEIGHT);
 		glTextureSubImage2D(m_TextureBuffer, 0, 0, 0, (int)WINDOW_WIDTH, (int)WINDOW_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		glBindTexture(GL_TEXTURE_2D, 0);
