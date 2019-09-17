@@ -40,10 +40,10 @@ namespace test
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
 
 		float planeVertices[] = {
-			0.f,  0.f,  0.f, 0.f, 1.f, 0.f, 0.f, 0.f, // 1
-			0.5f, 0.f,  0.f, 0.f, 1.f, 0.f, 1.f, 0.f, // 2
-			0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.f, 1.f, // 3
-			0.f,  0.5f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f  // 4
+			0.f,  0.f,  0.f, 0.f, 0.f, 1.f, 0.f, 0.f, // 1
+			0.5f, 0.f,  0.f, 0.f, 0.f, 1.f, 1.f, 0.f, // 2
+			0.5f, 0.5f, 0.f, 0.f, 0.f, 1.f, 1.f, 1.f, // 3
+			0.f,  0.5f, 0.f, 0.f, 0.f, 1.f, 0.f, 1.f  // 4
 		};
 
 		unsigned int planeIndices[] = {
@@ -434,10 +434,10 @@ namespace test
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
 
 		float planeVertices[] = {
-			0.f,  0.f,  0.f, 0.f, 1.f, 0.f, 0.f, 0.f, // 1
-			0.5f, 0.f,  0.f, 0.f, 1.f, 0.f, 1.f, 0.f, // 2
-			0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.f, 1.f, // 3
-			0.f,  0.5f, 0.f, 0.f, 1.f, 0.f, 0.f, 1.f  // 4
+			0.f,  0.f,  0.f, 0.f, 0.f, 1.f, 0.f, 0.f, // 1
+			0.5f, 0.f,  0.f, 0.f, 0.f, 1.f, 1.f, 0.f, // 2
+			0.5f, 0.5f, 0.f, 0.f, 0.f, 1.f, 1.f, 1.f, // 3
+			0.f,  0.5f, 0.f, 0.f, 0.f, 1.f, 0.f, 1.f  // 4
 		};
 
 		unsigned int planeIndices[] = {

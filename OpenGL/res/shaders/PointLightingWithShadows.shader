@@ -21,8 +21,7 @@ void main()
 	gl_Position = u_ViewProjection * u_Model * vec4(a_Position, 1.f);
 	vs_out.v_FragPos = vec3(u_Model * vec4(a_Position, 1.f));
 	// TODO: move to CPU for better performance
-	//vs_out.v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
-	vs_out.v_Normal = a_Normal;
+	vs_out.v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
 	vs_out.v_TexCoord = a_TexCoord;
 }
 
@@ -117,7 +116,7 @@ float ShadowCalculation(vec3 fragPos)
 	float bias = 0.1f;
 	float shadow = 0.f;
 	shadow = currentDepth - bias > closestDepth ? 1.f : 0.f;
-	// To solve aliasing via PCF
+	// TODO: To solve aliasing via PCF
 
 	return shadow;
 }
