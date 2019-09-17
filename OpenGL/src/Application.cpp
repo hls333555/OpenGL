@@ -93,7 +93,8 @@ int main(void)
 		testMenu->RegisterTest<test::Test_GeometryShader>("Geometry Shader");
 		testMenu->RegisterTest<test::Test_BasicInstancing>("Basic Instancing");
 		testMenu->RegisterTest<test::Test_AdvancedInstancing>("Advanced Instancing");
-		testMenu->RegisterTest<test::Test_DirectionalShadowMapping>("Directional Shadow Mapping");
+		testMenu->RegisterTest<test::Test_DirectionalShadowMapping>("Directional Light Shadow Mapping");
+		testMenu->RegisterTest<test::Test_OmniDirectionalShadowMapping>("Point Light Shadow Mapping");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))

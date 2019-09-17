@@ -544,7 +544,9 @@
     <None Include="res\shaders\BasicColor_Instanced.shader" />
     <None Include="res\shaders\BasicModel.shader" />
     <None Include="res\shaders\DepthMap.shader" />
-    <None Include="res\shaders\LightingWithShadows.shader" />
+    <None Include="res\shaders\DirectionalLightingWithShadows.shader" />
+    <None Include="res\shaders\PointLightingWithShadows.shader" />
+    <None Include="res\shaders\DepthCubemap.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">

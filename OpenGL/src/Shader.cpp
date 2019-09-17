@@ -135,7 +135,7 @@ int Shader::CreateShader(const ShaderSources& shaderSources)
 	if (result == GL_FALSE)
 	{
 		std::cout << "Failed to validate program!" << std::endl;
-		return 0;
+		//return 0;
 	}
 
 	return program;
