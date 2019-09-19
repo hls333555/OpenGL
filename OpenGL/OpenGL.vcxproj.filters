@@ -108,6 +108,9 @@
     <ClCompile Include="src\tests\Test_Shadow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\Test_Bloom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
@@ -547,6 +550,10 @@
     <None Include="res\shaders\DirectionalLightingWithShadows.shader" />
     <None Include="res\shaders\PointLightingWithShadows.shader" />
     <None Include="res\shaders\DepthCubemap.shader" />
+    <None Include="res\shaders\Cube_MRT.shader" />
+    <None Include="res\shaders\BasicColor_MRT.shader" />
+    <None Include="res\shaders\GaussianBlur.shader" />
+    <None Include="res\shaders\Bloom.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1606,6 +1613,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tests\Test_Shadow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\Test_Bloom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
