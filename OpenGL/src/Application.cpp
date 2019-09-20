@@ -23,6 +23,7 @@
 #include "tests/Test_Instancing.h"
 #include "tests/Test_Shadow.h"
 #include "tests/Test_Bloom.h"
+#include "tests/Test_DeferredShading.h"
 
 int main(void)
 {
@@ -97,6 +98,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_DirectionalShadowMapping>("Directional Light Shadow Mapping");
 		testMenu->RegisterTest<test::Test_OmniDirectionalShadowMapping>("Point Light Shadow Mapping");
 		testMenu->RegisterTest<test::Test_Bloom>("Bloom with HDR");
+		testMenu->RegisterTest<test::Test_DeferredShading>("Deferred Rendering");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))

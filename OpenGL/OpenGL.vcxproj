@@ -96,6 +96,7 @@
     <ClCompile Include="src\tests\Test_ClearColor.cpp" />
     <ClCompile Include="src\tests\Test_Cube.cpp" />
     <ClCompile Include="src\tests\Test_Cubemap.cpp" />
+    <ClCompile Include="src\tests\Test_DeferredShading.cpp" />
     <ClCompile Include="src\tests\Test_FaceCulling.cpp" />
     <ClCompile Include="src\tests\Test_FrameBuffer.cpp" />
     <ClCompile Include="src\tests\Test_GeometryShader.cpp" />
@@ -138,6 +139,7 @@
     <None Include="res\shaders\GaussianBlur.shader" />
     <None Include="res\shaders\Model.shader" />
     <None Include="res\shaders\ModelNormal.shader" />
+    <None Include="res\shaders\Model_DeferredShading.shader" />
     <None Include="res\shaders\PointLightingWithShadows.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl" />
@@ -283,6 +285,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="res\shaders\Model_Instanced.shader" />
+    <ClInclude Include="res\shaders\Model_GBuffer.shader" />
     <ClInclude Include="src\IndexBuffer.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Model.h" />
@@ -293,6 +296,7 @@
     <ClInclude Include="src\tests\Test_ClearColor.h" />
     <ClInclude Include="src\tests\Test_Cube.h" />
     <ClInclude Include="src\tests\Test_Cubemap.h" />
+    <ClInclude Include="src\tests\Test_DeferredShading.h" />
     <ClInclude Include="src\tests\Test_FaceCulling.h" />
     <ClInclude Include="src\tests\Test_FrameBuffer.h" />
     <ClInclude Include="src\tests\Test_GeometryShader.h" />

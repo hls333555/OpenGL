@@ -87,7 +87,7 @@ void main()
 		brightColor = vec4(0.f, 0.f, 0.f, 1.f);
 	}
 	fragColor = vec4(pointColor, 1.f);
-	// Uncomment this line to enable bloom for cubes!
+	// Comment this line to enable bloom for cubes!
 	brightColor = vec4(0.f, 0.f, 0.f, 1.f);
 }
 
