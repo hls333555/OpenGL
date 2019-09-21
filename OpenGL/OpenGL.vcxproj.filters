@@ -114,6 +114,9 @@
     <ClCompile Include="src\tests\Test_DeferredShading.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tests\Test_PBR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
@@ -558,6 +561,7 @@
     <None Include="res\shaders\GaussianBlur.shader" />
     <None Include="res\shaders\Bloom.shader" />
     <None Include="res\shaders\Model_DeferredShading.shader" />
+    <None Include="res\shaders\BasicPBR.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1626,6 +1630,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="res\shaders\Model_GBuffer.shader">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\Test_PBR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

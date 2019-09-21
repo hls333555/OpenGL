@@ -24,6 +24,7 @@
 #include "tests/Test_Shadow.h"
 #include "tests/Test_Bloom.h"
 #include "tests/Test_DeferredShading.h"
+#include "tests/Test_PBR.h"
 
 int main(void)
 {
@@ -99,6 +100,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_OmniDirectionalShadowMapping>("Point Light Shadow Mapping");
 		testMenu->RegisterTest<test::Test_Bloom>("Bloom with HDR");
 		testMenu->RegisterTest<test::Test_DeferredShading>("Deferred Rendering");
+		testMenu->RegisterTest<test::Test_BasicPBR>("Basic PBR");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))

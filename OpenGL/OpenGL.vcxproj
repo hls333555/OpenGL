@@ -92,6 +92,7 @@
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\tests\Test.cpp" />
+    <ClCompile Include="src\tests\Test_PBR.cpp" />
     <ClCompile Include="src\tests\Test_Bloom.cpp" />
     <ClCompile Include="src\tests\Test_ClearColor.cpp" />
     <ClCompile Include="src\tests\Test_Cube.cpp" />
@@ -125,6 +126,7 @@
     <None Include="res\shaders\BasicColor_MRT.shader" />
     <None Include="res\shaders\BasicGS.shader" />
     <None Include="res\shaders\BasicModel.shader" />
+    <None Include="res\shaders\BasicPBR.shader" />
     <None Include="res\shaders\BasicScreenTexture.shader" />
     <None Include="res\shaders\BasicTexture.shader" />
     <None Include="res\shaders\Bloom.shader" />
@@ -292,6 +294,7 @@
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\tests\Test.h" />
+    <ClInclude Include="src\tests\Test_PBR.h" />
     <ClInclude Include="src\tests\Test_Bloom.h" />
     <ClInclude Include="src\tests\Test_ClearColor.h" />
     <ClInclude Include="src\tests\Test_Cube.h" />
