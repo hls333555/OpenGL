@@ -268,12 +268,12 @@ namespace test
 			m_Shader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 			for (unsigned int row = 0; row < 7; ++row)
 			{
-				m_Shader->SetUniform1f("u_Material.metallic", row / 6.f);
+				m_Shader->SetUniform1f("u_Material.metallic", row / 7.f);
 				for (unsigned int col = 0; col < 7; ++col)
 				{
 					// We clamp the roughness to 0.05f - 1.f
 					// as perfectly smooth surfaces (roughness of 0.f) tend to look a bit off on direct lighting
-					m_Shader->SetUniform1f("u_Material.roughness", glm::clamp(col / 6.f, 0.05f, 1.f));
+					m_Shader->SetUniform1f("u_Material.roughness", glm::clamp(col / 7.f, 0.05f, 1.f));
 
 					glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3((col - 3.f) * 2.5f, (row - 3.f) * 2.5f, 0.f));
 					m_Shader->SetUniformMat4f("u_Model", model);

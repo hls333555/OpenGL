@@ -72,7 +72,6 @@ uniform vec3 u_ViewPos;
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
 	float a = roughness * roughness;
-	//a = roughness;
 	float a2 = a * a;
 	float NdotH = max(dot(N, H), 0.f);
 	float NdotH2 = NdotH * NdotH;
@@ -81,8 +80,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 	float denom = (NdotH2 * (a2 - 1.f) + 1.f);
 	denom = PI * denom * denom;
 
-	// Prevent divide by zero for roughness = 0.f and NdotH = 1.f
-	return nom / max(denom, 0.001f);
+	return nom / denom;
 }
 
 float GeometrySchlickGGX(float NdotV, float roughness)
