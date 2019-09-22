@@ -62,4 +62,51 @@ namespace test
 
 	};
 
+	class Test_IBLPBR : public Test
+	{
+	public:
+		Test_IBLPBR();
+		~Test_IBLPBR() {}
+
+		virtual void OnUpdate(float deltaTime) override;
+		virtual void OnImGuiRender() override;
+
+		virtual void ProcessInput(GLFWwindow* window, float deltaTime) override;
+
+	private:
+		static void OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset);
+
+		void ResetView();
+
+	private:
+		std::unique_ptr<VertexArray> m_VAO;
+		std::unique_ptr<VertexBuffer> m_VBO;
+		std::unique_ptr<IndexBuffer> m_IBO;
+
+		std::unique_ptr<VertexArray> m_BackgroundVAO;
+		std::unique_ptr<VertexBuffer> m_BackgroundVBO;
+
+		std::unique_ptr<Shader> m_PointLightShader;
+		std::vector<glm::vec3> m_PointLightPositions;
+		std::vector<glm::vec3> m_PointLightColors;
+
+		GLuint m_CaptureFBO, m_CaptureRBO;
+		GLuint m_HDRTexture, m_EnvCubemapTexture, m_IrradianceMapTexture;
+
+		std::unique_ptr<Shader> m_PBRShader, m_BackgroundShader, m_EquirectangularToCubemapShader, m_IrradianceShader;
+
+		glm::mat4 m_Proj, m_View;
+
+		float m_CameraOrbitRadius;
+		glm::vec3 m_CameraPos;
+		glm::vec3 m_CameraFront;
+		glm::vec3 m_CameraUp;
+		float m_CameraMoveSpeed;
+		float m_CameraRotSpeed;
+		float m_Yaw, m_Pitch;
+		static float s_FOV, s_FOVMin, s_FOVMax;
+		double m_LastXPos = 0, m_LastYPos = 0;
+
+	};
+
 }

@@ -562,6 +562,10 @@
     <None Include="res\shaders\Bloom.shader" />
     <None Include="res\shaders\Model_DeferredShading.shader" />
     <None Include="res\shaders\BasicPBR.shader" />
+    <None Include="res\shaders\IBLPBR.shader" />
+    <None Include="res\shaders\EquirectangularToCubemap.shader" />
+    <None Include="res\shaders\IrradianceConvolution.shader" />
+    <None Include="res\shaders\PBRBackground.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">

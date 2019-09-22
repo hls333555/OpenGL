@@ -138,10 +138,14 @@
     <None Include="res\shaders\DepthMap.shader" />
     <None Include="res\shaders\EnvironmentMapping.shader" />
     <None Include="res\shaders\DirectionalLightingWithShadows.shader" />
+    <None Include="res\shaders\EquirectangularToCubemap.shader" />
     <None Include="res\shaders\GaussianBlur.shader" />
+    <None Include="res\shaders\IBLPBR.shader" />
+    <None Include="res\shaders\IrradianceConvolution.shader" />
     <None Include="res\shaders\Model.shader" />
     <None Include="res\shaders\ModelNormal.shader" />
     <None Include="res\shaders\Model_DeferredShading.shader" />
+    <None Include="res\shaders\PBRBackground.shader" />
     <None Include="res\shaders\PointLightingWithShadows.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl" />

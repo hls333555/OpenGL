@@ -250,7 +250,7 @@ namespace test
 		Renderer renderer;
 		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
-		// Render spheres with varying metallic/roughness values scaled by rows and columns respectively
+		// Render spheres with textures or with varying metallic/roughness values scaled by rows and columns respectively
 		{
 			if (m_bUseTexture)
 			{
@@ -271,12 +271,13 @@ namespace test
 				m_Shader->SetUniform1f("u_Material.metallic", row / 6.f);
 				for (unsigned int col = 0; col < 7; ++col)
 				{
+					// We clamp the roughness to 0.05f - 1.f
+					// as perfectly smooth surfaces (roughness of 0.f) tend to look a bit off on direct lighting
 					m_Shader->SetUniform1f("u_Material.roughness", glm::clamp(col / 6.f, 0.05f, 1.f));
 
 					glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3((col - 3.f) * 2.5f, (row - 3.f) * 2.5f, 0.f));
 					m_Shader->SetUniformMat4f("u_Model", model);
 
-					//renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
 					renderSphere();
 				}
 			}
@@ -291,12 +292,6 @@ namespace test
 				m_Shader->Bind();
 				m_Shader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].position", newPos.x, newPos.y, newPos.z);
 				m_Shader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].color", (*m_PointLightColors)[i].x, (*m_PointLightColors)[i].y, (*m_PointLightColors)[i].z);
-				//m_Shader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].ambientIntensity", m_AmbientIntensity.x, m_AmbientIntensity.y, m_AmbientIntensity.z);
-				//m_Shader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].diffuseIntensity", m_DiffuseIntensity.x, m_DiffuseIntensity.y, m_DiffuseIntensity.z);
-				//m_Shader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].specularIntensity", m_SpecularIntensity.x, m_SpecularIntensity.y, m_SpecularIntensity.z);
-				//m_Shader->SetUniform1f("u_PointLights[" + std::to_string(i) + "].q", 0.032f);
-				//m_Shader->SetUniform1f("u_PointLights[" + std::to_string(i) + "].l", 0.09f);
-				//m_Shader->SetUniform1f("u_PointLights[" + std::to_string(i) + "].c", 1.f);
 
 				m_PointLightShader->Bind();
 				m_PointLightShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
@@ -414,6 +409,468 @@ namespace test
 	}
 
 	void Test_BasicPBR::ResetView()
+	{
+		m_CameraPos = DEFAULT_CAMERAPOS;
+		m_CameraFront = DEFAULT_CAMERAFRONT;
+		m_Yaw = DEFAULT_YAW;
+		m_Pitch = DEFAULT_PITCH;
+		s_FOV = DEFAULT_FOV;
+	}
+
+
+	float Test_IBLPBR::s_FOV = DEFAULT_FOV;
+	float Test_IBLPBR::s_FOVMin = 1.f;
+	float Test_IBLPBR::s_FOVMax = 90.f;
+
+	Test_IBLPBR::Test_IBLPBR()
+		: m_CameraOrbitRadius(3.f)
+		, m_CameraPos(DEFAULT_CAMERAPOS)
+		, m_CameraFront(DEFAULT_CAMERAFRONT)
+		, m_CameraUp(glm::vec3(0.f, 1.f, 0.f))
+		, m_CameraMoveSpeed(3.f)
+		, m_CameraRotSpeed(15.f)
+		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
+	{
+		// WORKAROUND: C style function pointer must take a static function if it is a member function!
+		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
+
+		float vertices[] = {
+			// ---Begin: Top---
+			0.f,  0.5f,  0.5f,  0.f,  1.f,  0.f, 0.f, 0.f, // 0
+			0.5f, 0.5f,  0.5f,  0.f,  1.f,  0.f, 1.f, 0.f, // 1
+			0.5f, 0.5f,  0.f,   0.f,  1.f,  0.f, 1.f, 1.f, // 2
+			0.f,  0.5f,  0.f,   0.f,  1.f,  0.f, 0.f, 1.f, // 3
+			// ---Begin: Front---
+			0.f,  0.f,   0.5f,  0.f,  0.f,  1.f, 0.f, 0.f, // 4
+			0.5f, 0.f,   0.5f,  0.f,  0.f,  1.f, 1.f, 0.f, // 5
+			0.5f, 0.5f,  0.5f,  0.f,  0.f,  1.f, 1.f, 1.f, // 6
+			0.f,  0.5f,  0.5f,  0.f,  0.f,  1.f, 0.f, 1.f, // 7
+			// ---Begin: Left---
+			0.f,  0.f,   0.f,  -1.f,  0.f,  0.f, 0.f, 0.f, // 8
+			0.f,  0.f,   0.5f, -1.f,  0.f,  0.f, 1.f, 0.f, // 9
+			0.f,  0.5f,  0.5f, -1.f,  0.f,  0.f, 1.f, 1.f, // 10
+			0.f,  0.5f,  0.f,  -1.f,  0.f,  0.f, 0.f, 1.f, // 11
+			// ---Begin: Back---
+			0.5f, 0.f,   0.f,   0.f,  0.f, -1.f, 0.f, 0.f, // 12
+			0.f,  0.f,   0.f,   0.f,  0.f, -1.f, 1.f, 0.f, // 13
+			0.f,  0.5f,  0.f,   0.f,  0.f, -1.f, 1.f, 1.f, // 14
+			0.5f, 0.5f,  0.f,   0.f,  0.f, -1.f, 0.f, 1.f, // 15
+			// ---Begin: Right---
+			0.5f, 0.f,   0.5f,  1.f,  0.f,  0.f, 0.f, 0.f, // 16 
+			0.5f, 0.f,   0.f,   1.f,  0.f,  0.f, 1.f, 0.f, // 17
+			0.5f, 0.5f,  0.f,   1.f,  0.f,  0.f, 1.f, 1.f, // 18
+			0.5f, 0.5f,  0.5f,  1.f,  0.f,  0.f, 0.f, 1.f, // 19
+			// ---Begin: Bottom---
+			0.f,  0.f,   0.f,   0.f, -1.f,  0.f, 0.f, 0.f, // 20
+			0.5f, 0.f,   0.f,   0.f, -1.f,  0.f, 1.f, 0.f, // 21
+			0.5f, 0.f,   0.5f,  0.f, -1.f,  0.f, 1.f, 1.f, // 22
+			0.f,  0.f,   0.5f,  0.f, -1.f,  0.f, 0.f, 1.f  // 23
+		};
+
+		unsigned int indices[] = {
+			// ---Begin: Top---
+			0,  1,  3,
+			3,  1,  2,
+			// ---Begin: Front---
+			4,  5,  7,
+			7,  5,  6,
+			// ---Begin: Left---
+			8,  9,  11,
+			11, 9,  10,
+			// ---Begin: Back---
+			12, 13, 15,
+			15, 13, 14,
+			// ---Begin: Right---
+			16, 17, 19,
+			19, 17, 18,
+			// ---Begin: Bottom---
+			20, 21, 23,
+			23, 21, 22
+		};
+
+		float backgroundVertices[] = {
+			// ---Begin: Top---
+			-10.f,  10.f, -10.f, // 0
+			 10.f,  10.f, -10.f, // 1
+			 10.f,  10.f,  10.f, // 2
+			-10.f,  10.f,  10.f, // 3
+			// ---Begin: Front---
+			 10.f, -10.f,  10.f, // 4
+			-10.f, -10.f,  10.f, // 5
+			-10.f,  10.f,  10.f, // 6
+			 10.f,  10.f,  10.f, // 7
+			// ---Begin: Left---
+			-10.f, -10.f,  10.f, // 8
+			-10.f, -10.f, -10.f, // 9
+			-10.f,  10.f, -10.f, // 10
+			-10.f,  10.f,  10.f, // 11
+			// ---Begin: Back---
+			-10.f, -10.f, -10.f, // 12
+			 10.f, -10.f, -10.f, // 13
+			 10.f,  10.f, -10.f, // 14
+			-10.f,  10.f, -10.f, // 15
+			// ---Begin: Right---
+			 10.f, -10.f, -10.f, // 16 
+			 10.f, -10.f,  10.f, // 17
+			 10.f,  10.f,  10.f, // 18
+			 10.f,  10.f, -10.f, // 19
+			// ---Begin: Bottom---
+			-10.f, -10.f,  10.f, // 20
+			 10.f, -10.f,  10.f, // 21
+			 10.f, -10.f, -10.f, // 22
+			-10.f, -10.f, -10.f  // 23
+		};
+
+		m_PointLightPositions = {
+			{ -10.f, -10.f, 10.f},
+			{  10.f, -10.f, 10.f},
+			{  10.f,  10.f, 10.f},
+			{ -10.f,  10.f, 10.f}
+		};
+
+		m_PointLightColors = {
+			{300.f, 300.f, 300.f},
+			{300.f, 300.f, 300.f},
+			{300.f, 300.f, 300.f},
+			{300.f, 300.f, 300.f},
+		};
+
+		glEnable(GL_DEPTH_TEST);
+		// Set depth function to less than AND equal for background depth trick
+		glDepthFunc(GL_LEQUAL);
+
+		m_VAO.reset(new VertexArray());
+
+		m_VBO.reset(new VertexBuffer(vertices, 192 * sizeof(float)));
+
+		VertexBufferLayout layout;
+		layout.Push<float>(3);
+		layout.Push<float>(3);
+		layout.Push<float>(2);
+		m_VAO->AddBuffer(*m_VBO, layout);
+
+		m_IBO.reset(new IndexBuffer(indices, 36));
+
+		m_PBRShader.reset(new Shader("res/shaders/IBLPBR.shader"));
+		m_PBRShader->Bind();
+		m_PBRShader->SetUniform1i("u_IrradianceMap", 0);
+		m_PBRShader->SetUniform3f("u_Material.baseColor", 0.5f, 0.f, 0.f);
+		m_PBRShader->SetUniform1f("u_Material.ao", 1.f);
+
+		m_BackgroundVAO.reset(new VertexArray());
+		m_BackgroundVBO.reset(new VertexBuffer(backgroundVertices, 72 * sizeof(float)));
+		VertexBufferLayout backgroundLayout;
+		backgroundLayout.Push<float>(3);
+		m_BackgroundVAO->AddBuffer(*m_BackgroundVBO, backgroundLayout);
+
+		m_BackgroundShader.reset(new Shader("res/shaders/PBRBackground.shader"));
+		m_BackgroundShader->Bind();
+		m_BackgroundShader->SetUniform1i("u_EnvironmentMap", 0);
+
+		m_PointLightShader.reset(new Shader("res/shaders/BasicColor.shader"));
+
+		// Setup framebuffer
+		// -----------------
+
+		glCreateFramebuffers(1, &m_CaptureFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
+
+		glCreateRenderbuffers(1, &m_CaptureRBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_CaptureRBO);
+
+		// Load the HDR environment map
+		// ----------------------------
+
+		stbi_set_flip_vertically_on_load(1);
+		int width, height, numComponents;
+		float* data = stbi_loadf("res/textures/HDR/Alexs_Apt_2k.hdr", &width, &height, &numComponents, 0);
+		if (data)
+		{
+			glCreateTextures(GL_TEXTURE_2D, 1, &m_HDRTexture);
+			glBindTexture(GL_TEXTURE_2D, m_HDRTexture);
+			glTextureStorage2D(m_HDRTexture, 1, GL_RGB16F, width, height);
+			glTextureSubImage2D(m_HDRTexture, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, data);
+
+			glTextureParameteri(m_HDRTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(m_HDRTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTextureParameteri(m_HDRTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTextureParameteri(m_HDRTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Failed to load HDR image!" << std::endl;
+		}
+
+		// Setup cubemap to render to and attach to framebuffer
+		// ----------------------------------------------------
+
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_EnvCubemapTexture);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemapTexture);
+		for (unsigned int i = 0; i < 6; ++i)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+		}
+		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		// Set up projection and view matrices for capturing data onto the 6 cubemap face directions
+		// -----------------------------------------------------------------------------------------
+
+		glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+		glm::mat4 captureViews[] = {
+			glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+			glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+			glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+			glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+			glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+			glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+		};
+
+		// Convert HDR equirectangular environment map to cubemap equivalent
+		// -----------------------------------------------------------------
+
+		m_EquirectangularToCubemapShader.reset(new Shader("res/shaders/EquirectangularToCubemap.shader"));
+		m_EquirectangularToCubemapShader->Bind();
+		m_EquirectangularToCubemapShader->SetUniform1i("u_EquirectangularMap", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_HDRTexture);
+		
+		Renderer renderer;
+
+		glViewport(0, 0, 512, 512); // Don't forget to configure the viewport to the capture dimensions
+		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
+		for (unsigned int i = 0; i < 6; ++i)
+		{
+			m_EquirectangularToCubemapShader->SetUniformMat4f("u_ViewProjection", captureProjection * captureViews[i]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_EnvCubemapTexture, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			renderer.Draw(*m_BackgroundVAO, *m_IBO, *m_EquirectangularToCubemapShader);
+		}
+		ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Create an irradiance cubemap, and re-scale capture FBO to irradiance scale
+		// --------------------------------------------------------------------------
+
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_IrradianceMapTexture);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMapTexture);
+		for (unsigned int i = 0; i < 6; ++i)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, nullptr);
+		}
+		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+
+		// Solve diffuse integral by convolution to create an irradiance (cube)map
+		// -----------------------------------------------------------------------
+		m_IrradianceShader.reset(new Shader("res/shaders/IrradianceConvolution.shader"));
+		m_IrradianceShader->Bind();
+		m_IrradianceShader->SetUniform1i("u_EnvironmentMap", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemapTexture);
+
+		glViewport(0, 0, 32, 32); // Don't forget to configure the viewport to the capture dimensions
+		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
+		for (unsigned int i = 0; i < 6; ++i)
+		{
+			m_IrradianceShader->SetUniformMat4f("u_ViewProjection", captureProjection * captureViews[i]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_IrradianceMapTexture, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			renderer.Draw(*m_BackgroundVAO, *m_IBO, *m_IrradianceShader);
+		}
+		ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// -----------------------------------------------------------------------
+
+		// Reset the viewport to the original framebuffer's screen dimensions
+		glViewport(0, 0, (int)WINDOW_WIDTH, (int)WINDOW_HEIGHT);
+
+	}
+
+	void Test_IBLPBR::OnUpdate(float deltaTime)
+	{
+		ProcessInput(Test::s_Window, deltaTime);
+
+		Renderer renderer;
+		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
+		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
+		// Render spheres with varying metallic/roughness values scaled by rows and columns respectively
+		{
+			// Bind pre-computed IBL data
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMapTexture);
+
+			m_PBRShader->Bind();
+			m_PBRShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+			m_PBRShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+			for (unsigned int row = 0; row < 7; ++row)
+			{
+				m_PBRShader->SetUniform1f("u_Material.metallic", row / 7.f);
+				for (unsigned int col = 0; col < 7; ++col)
+				{
+					// We clamp the roughness to 0.05f - 1.f
+					// as perfectly smooth surfaces (roughness of 0.f) tend to look a bit off on direct lighting
+					m_PBRShader->SetUniform1f("u_Material.roughness", glm::clamp(col / 7.f, 0.05f, 1.f));
+
+					glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3((col - 3.f) * 2.5f, (row - 3.f) * 2.5f, 0.f));
+					m_PBRShader->SetUniformMat4f("u_Model", model);
+
+					renderSphere();
+				}
+			}
+		}
+		// Render pointLights
+		if (true)
+		{
+			for (unsigned int i = 0; i < m_PointLightPositions.size(); ++i)
+			{
+				glm::vec3 newPos = m_PointLightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.f) * 5.f, 0.f, 0.f);
+				newPos = m_PointLightPositions[i];
+				m_PBRShader->Bind();
+				m_PBRShader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].position", newPos.x, newPos.y, newPos.z);
+				m_PBRShader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].color", m_PointLightColors[i].x, m_PointLightColors[i].y, m_PointLightColors[i].z);
+
+				m_PointLightShader->Bind();
+				m_PointLightShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+				glm::mat4 model_PointLight = glm::translate(glm::mat4(1.f), m_PointLightPositions[i]) *
+					glm::scale(glm::mat4(1.f), glm::vec3(0.2f));
+				m_PointLightShader->SetUniformMat4f("u_Model", model_PointLight);
+				m_PointLightShader->SetUniform4f("u_Color", m_PointLightColors[i].x, m_PointLightColors[i].y, m_PointLightColors[i].z, 1.f);
+
+				renderer.Draw(*m_VAO, *m_IBO, *m_PointLightShader);
+			}
+
+		}
+		// Render background cubemap at last to prevent overdraw
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemapTexture);
+			m_BackgroundShader->Bind();
+			m_BackgroundShader->SetUniformMat4f("u_View", m_View);
+			m_BackgroundShader->SetUniformMat4f("u_Projection", m_Proj);
+
+			renderer.Draw(*m_BackgroundVAO, *m_IBO, *m_BackgroundShader);
+		}
+
+	}
+
+	void Test_IBLPBR::OnImGuiRender()
+	{
+		ImGui::Text(u8"使用RMB，ALT+RMB，MMB和WSAD来变换相机视角！");
+		ImGui::Text(u8"相机位置: (%.1f, %.1f, %.1f)", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+		ImGui::Text(u8"相机朝向: (%.1f, %.1f, %.1f)", m_CameraFront.x, m_CameraFront.y, m_CameraFront.z);
+
+		if (ImGui::Button(u8"重置视角"))
+		{
+			ResetView();
+		}
+
+	}
+
+	void Test_IBLPBR::ProcessInput(GLFWwindow* window, float deltaTime)
+	{
+		////////////////////////////////////////////////////////////
+		// Camera: Focus Object (Center) ///////////////////////////
+		////////////////////////////////////////////////////////////
+
+		if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+		{
+			m_CameraPos = glm::vec3(0.f) - m_CameraFront * m_CameraOrbitRadius;
+		}
+
+		////////////////////////////////////////////////////////////
+		// Camera: Planar Movement /////////////////////////////////
+		////////////////////////////////////////////////////////////
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			m_CameraPos += m_CameraFront * m_CameraMoveSpeed * deltaTime;
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			m_CameraPos -= m_CameraFront * m_CameraMoveSpeed * deltaTime;
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			m_CameraPos += glm::normalize(glm::cross(m_CameraUp, m_CameraFront)) * m_CameraMoveSpeed * deltaTime;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			m_CameraPos -= glm::normalize(glm::cross(m_CameraUp, m_CameraFront)) * m_CameraMoveSpeed * deltaTime;
+		}
+
+		////////////////////////////////////////////////////////////
+		// Camera: Angular Movement ////////////////////////////////
+		////////////////////////////////////////////////////////////
+
+		static bool bFirstPress = true;
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+		{
+			// When right mouse button is pressed, hide cursor and constrain it at the original location
+			glfwSetInputMode(Test::s_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+			double xpos = 0, ypos = 0;
+			glfwGetCursorPos(Test::s_Window, &xpos, &ypos);
+
+			if (bFirstPress)
+			{
+				m_LastXPos = xpos;
+				m_LastYPos = ypos;
+				bFirstPress = false;
+			}
+
+			float xOffset = float(xpos - m_LastXPos) * m_CameraRotSpeed * deltaTime;
+			float yOffset = float(m_LastYPos - ypos) * m_CameraRotSpeed * deltaTime;
+			m_LastXPos = xpos;
+			m_LastYPos = ypos;
+
+			m_Yaw += xOffset;
+			m_Pitch = glm::clamp(m_Pitch + yOffset, -89.f, 89.f);
+
+			glm::vec3 front;
+			front.x = cos(glm::radians(m_Pitch)) * cos(glm::radians(m_Yaw));
+			front.y = sin(glm::radians(m_Pitch));
+			front.z = cos(glm::radians(m_Pitch)) * sin(glm::radians(m_Yaw));
+			m_CameraFront = glm::normalize(front);
+
+			if (glfwGetKey(Test::s_Window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(Test::s_Window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS)
+			{
+				// Orbit around the center object
+				m_CameraPos = m_CameraFront * -1.f * m_CameraOrbitRadius;
+			}
+		}
+		else
+		{
+			bFirstPress = true;
+			// When right mouse button is rleased, restore cursor behavior
+			glfwSetInputMode(Test::s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+
+	}
+
+	void Test_IBLPBR::OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset)
+	{
+		s_FOV = glm::clamp(float(s_FOV - yoffset), s_FOVMin, s_FOVMax);
+	}
+
+	void Test_IBLPBR::ResetView()
 	{
 		m_CameraPos = DEFAULT_CAMERAPOS;
 		m_CameraFront = DEFAULT_CAMERAFRONT;

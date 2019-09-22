@@ -101,6 +101,7 @@ int main(void)
 		testMenu->RegisterTest<test::Test_Bloom>("Bloom with HDR");
 		testMenu->RegisterTest<test::Test_DeferredShading>("Deferred Rendering");
 		testMenu->RegisterTest<test::Test_BasicPBR>("Basic PBR");
+		testMenu->RegisterTest<test::Test_IBLPBR>("PBR with Image Based Lighting");
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
