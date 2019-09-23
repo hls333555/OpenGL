@@ -143,7 +143,7 @@ int Shader::CreateShader(const ShaderSources& shaderSources)
 		std::cout << "Failed to validate program!" << std::endl;
 		std::cout << message << std::endl;
 
-		//return 0;
+		return 0;
 	}
 
 	return program;

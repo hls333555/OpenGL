@@ -27,6 +27,7 @@ void main()
 
 #shader fragment
 #version 330 core
+#extension GL_ARB_shading_language_420pack : enable
 
 struct Material
 {
@@ -64,7 +65,7 @@ out vec4 color;
 uniform Material u_Material;
 uniform PointLight u_PointLight;
 uniform vec3 u_ViewPos;
-uniform samplerCube u_ShadowCubemap;
+layout(binding = 2) uniform samplerCube u_ShadowCubemap;
 uniform float u_FarPlane;
 
 void main()

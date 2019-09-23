@@ -546,7 +546,8 @@ namespace test
 		m_CubeShader->SetUniform1i("u_Material.diffuseTex", 0);
 		m_CubeSpecularTexture.reset(new Texture("res/textures/Logo_S.png"));
 		m_CubeShader->SetUniform1i("u_Material.specularTex", 1);
-		m_CubeShader->SetUniform1i("u_ShadowCubemap", 2);
+		// This binding is set in shader directly
+		//m_CubeShader->SetUniform1i("u_ShadowCubemap", 2);
 
 		m_DepthShader.reset(new Shader("res/shaders/DepthCubemap.shader"));
 
