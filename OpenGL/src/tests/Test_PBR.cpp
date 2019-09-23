@@ -209,6 +209,7 @@ namespace test
 		};
 
 		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 
 		m_VAO.reset(new VertexArray());
 
@@ -550,6 +551,7 @@ namespace test
 		glEnable(GL_DEPTH_TEST);
 		// Set depth function to less than AND equal for background depth trick
 		glDepthFunc(GL_LEQUAL);
+		glDisable(GL_CULL_FACE);
 		// enable seamless cubemap sampling for lower mip levels in the pre-filter map.
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
