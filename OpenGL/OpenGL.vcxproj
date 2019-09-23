@@ -130,6 +130,7 @@
     <None Include="res\shaders\BasicScreenTexture.shader" />
     <None Include="res\shaders\BasicTexture.shader" />
     <None Include="res\shaders\Bloom.shader" />
+    <None Include="res\shaders\BRDF.shader" />
     <None Include="res\shaders\Cube.shader" />
     <None Include="res\shaders\Cube_Lighting.shader" />
     <None Include="res\shaders\BasicColor.shader" />
@@ -147,6 +148,7 @@
     <None Include="res\shaders\Model_DeferredShading.shader" />
     <None Include="res\shaders\PBRBackground.shader" />
     <None Include="res\shaders\PointLightingWithShadows.shader" />
+    <None Include="res\shaders\Prefilter.shader" />
     <None Include="res\shaders\Skybox.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl" />
     <None Include="src\vendor\assimp\include\assimp\material.inl" />

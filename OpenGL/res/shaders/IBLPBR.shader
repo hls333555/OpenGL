@@ -7,9 +7,9 @@ layout(location = 2) in vec2 a_TexCoord;
 
 out VS_OUT
 {
-	vec2 v_TexCoord;
+	vec3 v_WorldPos;
 	vec3 v_Normal;
-	vec3 v_WorldPos;	
+	vec2 v_TexCoord;
 } vs_out;
 
 uniform mat4 u_Model;
@@ -26,15 +26,17 @@ void main()
 
 #shader fragment
 #version 330 core
+#extension GL_ARB_shading_language_420pack : enable
 
 #define PI 3.14159265359
 #define NUM_POINTLIGHTS 4
+#define MAX_REFLECTION_LOD 4.f
 
 in VS_OUT
 {
-	vec2 v_TexCoord;
-	vec3 v_Normal;
 	vec3 v_WorldPos;
+	vec3 v_Normal;
+	vec2 v_TexCoord;
 } fs_in;
 
 out vec4 fragColor;
@@ -57,12 +59,17 @@ uniform vec3 u_ViewPos;
 uniform Material u_Material;
 uniform PointLight u_PointLights[NUM_POINTLIGHTS];
 // IBL
-uniform samplerCube u_IrradianceMap;
+// Enable extension above and set bindings can solve this error:
+// Validation Error: Samplers of different types point to the same texture unit
+layout(binding = 0) uniform samplerCube u_IrradianceMap;
+layout(binding = 1) uniform samplerCube u_PrefilterMap;
+layout(binding = 2) uniform sampler2D u_BRDFLUT;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 void main()
 {
@@ -70,16 +77,16 @@ void main()
 	vec3 V = normalize(u_ViewPos - fs_in.v_WorldPos);
 	vec3 R = reflect(-V, N);
 
-	// calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+	// Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
 	// of 0.04 and if it's a metal, use the baseColor color as F0 (metallic workflow)    
 	vec3 F0 = vec3(0.04f);
 	F0 = mix(F0, u_Material.baseColor, u_Material.metallic);
 
-	// reflectance equation
+	// Reflectance equation
 	vec3 Lo = vec3(0.f);
 	for (int i = 0; i < NUM_POINTLIGHTS; ++i)
 	{
-		// calculate per-light radiance
+		// Calculate per-light radiance
 		vec3 L = normalize(u_PointLights[i].position - fs_in.v_WorldPos);
 		vec3 H = normalize(V + L);
 		float distance = length(u_PointLights[i].position - fs_in.v_WorldPos);
@@ -97,30 +104,38 @@ void main()
 
 		// kS is equal to Fresnel
 		vec3 kS = F;
-		// for energy conservation, the diffuse and specular light can't
+		// For energy conservation, the diffuse and specular light can't
 		// be above 1.f (unless the surface emits light); to preserve this
-		// relationship the diffuse component (kD) should equal 1.f - kS.
+		// relationship the diffuse component (kD) should equal 1.f - kS
 		vec3 kD = vec3(1.f) - kS;
-		// multiply kD by the inverse metalness such that only non-metals 
+		// Multiply kD by the inverse metalness such that only non-metals 
 		// have diffuse lighting, or a linear blend if partly metal (pure metals
-		// have no diffuse light).
+		// have no diffuse light)
 		kD *= 1.f - u_Material.metallic;
 
-		// scale light by NdotL
+		// Scale light by NdotL
 		float NdotL = max(dot(N, L), 0.f);
 
-		// add to outgoing radiance Lo
+		// Add to outgoing radiance Lo
 		Lo += (kD * u_Material.baseColor / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
 	}
 
-	// ambient lighting (we now use IBL as the ambient term)
-	vec3 kS = fresnelSchlick(max(dot(N, V), 0.f), F0);
+	// Ambient lighting (we now use IBL as the ambient term)
+	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.f), F0, u_Material.roughness);
+
+	vec3 kS = F;
 	vec3 kD = 1.f - kS;
 	kD *= 1.f - u_Material.metallic;
+
 	vec3 irradiance = texture(u_IrradianceMap, N).rgb;
 	vec3 diffuse = irradiance * u_Material.baseColor;
-	vec3 ambient = (kD * diffuse) * u_Material.ao;
-	//vec3 ambient = vec3(0.002f);
+
+	// Sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part
+	vec3 prefilteredColor = textureLod(u_PrefilterMap, R, u_Material.roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 BRDF = texture(u_BRDFLUT, vec2(max(dot(N, V), 0.f), u_Material.roughness)).rg;
+	vec3 specular = prefilteredColor * (F * BRDF.x + BRDF.y);
+
+	vec3 ambient = (kD * diffuse + specular) * u_Material.ao;
 
 	vec3 color = ambient + Lo;
 
@@ -148,7 +163,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
-	float r = (roughness + 1.f);
+	float r = roughness + 1.f;
 	float k = (r * r) / 8.f;
 
 	float nom = NdotV;
@@ -170,4 +185,9 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
 	return F0 + (1.f - F0) * pow(1.f - cosTheta, 5.f);
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+	return F0 + (max(vec3(1.f - roughness), F0) - F0) * pow(1.f - cosTheta, 5.f);
 }

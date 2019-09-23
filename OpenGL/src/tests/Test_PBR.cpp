@@ -521,6 +521,18 @@ namespace test
 			-10.f, -10.f, -10.f  // 23
 		};
 
+		float quadVertices[] = {
+			-1.f, -1.f, 0.f, 0.f, // 1
+			 1.f, -1.f, 1.f, 0.f, // 2
+			 1.f,  1.f, 1.f, 1.f, // 3
+			-1.f,  1.f, 0.f, 1.f  // 4
+		};
+
+		unsigned int quadIndices[] = {
+			0, 1, 3,
+			3, 1, 2
+		};
+
 		m_PointLightPositions = {
 			{ -10.f, -10.f, 10.f},
 			{  10.f, -10.f, 10.f},
@@ -538,6 +550,8 @@ namespace test
 		glEnable(GL_DEPTH_TEST);
 		// Set depth function to less than AND equal for background depth trick
 		glDepthFunc(GL_LEQUAL);
+		// enable seamless cubemap sampling for lower mip levels in the pre-filter map.
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		m_VAO.reset(new VertexArray());
 
@@ -553,8 +567,11 @@ namespace test
 
 		m_PBRShader.reset(new Shader("res/shaders/IBLPBR.shader"));
 		m_PBRShader->Bind();
-		m_PBRShader->SetUniform1i("u_IrradianceMap", 0);
-		m_PBRShader->SetUniform3f("u_Material.baseColor", 0.5f, 0.f, 0.f);
+		// Bindings are set in shader directly
+		//m_PBRShader->SetUniform1i("u_IrradianceMap", 0);
+		//m_PBRShader->SetUniform1i("u_PrefilterMap", 1);
+		//m_PBRShader->SetUniform1i("u_BRDFLUT", 2);
+		m_PBRShader->SetUniform3f("u_Material.baseColor", 1.f, 1.f, 1.f);
 		m_PBRShader->SetUniform1f("u_Material.ao", 1.f);
 
 		m_BackgroundVAO.reset(new VertexArray());
@@ -568,6 +585,14 @@ namespace test
 		m_BackgroundShader->SetUniform1i("u_EnvironmentMap", 0);
 
 		m_PointLightShader.reset(new Shader("res/shaders/BasicColor.shader"));
+
+		m_QuadVAO.reset(new VertexArray());
+		m_QuadVBO.reset(new VertexBuffer(quadVertices, 16 * sizeof(float)));
+		VertexBufferLayout quadLayout;
+		quadLayout.Push<float>(2);
+		quadLayout.Push<float>(2);
+		m_QuadVAO->AddBuffer(*m_QuadVBO, quadLayout);
+		m_QuadIBO.reset(new IndexBuffer(quadIndices, 6));
 
 		// Setup framebuffer
 		// -----------------
@@ -608,17 +633,17 @@ namespace test
 		// Setup cubemap to render to and attach to framebuffer
 		// ----------------------------------------------------
 
-		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_EnvCubemapTexture);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemapTexture);
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_EnvCubemap);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemap);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
 		}
-		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(m_EnvCubemapTexture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_EnvCubemap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_EnvCubemap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_EnvCubemap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_EnvCubemap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_EnvCubemap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		// Set up projection and view matrices for capturing data onto the 6 cubemap face directions
 		// -----------------------------------------------------------------------------------------
@@ -649,7 +674,7 @@ namespace test
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			m_EquirectangularToCubemapShader->SetUniformMat4f("u_ViewProjection", captureProjection * captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_EnvCubemapTexture, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_EnvCubemap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			renderer.Draw(*m_BackgroundVAO, *m_IBO, *m_EquirectangularToCubemapShader);
@@ -660,17 +685,17 @@ namespace test
 		// Create an irradiance cubemap, and re-scale capture FBO to irradiance scale
 		// --------------------------------------------------------------------------
 
-		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_IrradianceMapTexture);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMapTexture);
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_IrradianceMap);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, nullptr);
 		}
-		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(m_IrradianceMapTexture, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_IrradianceMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_IrradianceMap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_IrradianceMap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_IrradianceMap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_IrradianceMap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
@@ -678,23 +703,103 @@ namespace test
 
 		// Solve diffuse integral by convolution to create an irradiance (cube)map
 		// -----------------------------------------------------------------------
+
 		m_IrradianceShader.reset(new Shader("res/shaders/IrradianceConvolution.shader"));
 		m_IrradianceShader->Bind();
 		m_IrradianceShader->SetUniform1i("u_EnvironmentMap", 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemapTexture);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemap);
 
 		glViewport(0, 0, 32, 32); // Don't forget to configure the viewport to the capture dimensions
 		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			m_IrradianceShader->SetUniformMat4f("u_ViewProjection", captureProjection * captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_IrradianceMapTexture, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_IrradianceMap, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			renderer.Draw(*m_BackgroundVAO, *m_IBO, *m_IrradianceShader);
 		}
 		ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Create a pre-filter cubemap, and re-scale capture FBO to pre-filter scale
+		// -------------------------------------------------------------------------
+
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_PrefilterMap);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap);
+		for (unsigned int i = 0; i < 6; ++i)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
+		}
+		glTextureParameteri(m_PrefilterMap, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // Be sure to set minifcation filter to mip_linear
+		glTextureParameteri(m_PrefilterMap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_PrefilterMap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_PrefilterMap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_PrefilterMap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		// Generate mipmaps for the cubemap so OpenGL automatically allocates the required memory
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+		// Run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map
+		// ----------------------------------------------------------------------------------------------
+		
+		m_PrefilterShader.reset(new Shader("res/shaders/Prefilter.shader"));
+		m_PrefilterShader->Bind();
+		m_PrefilterShader->SetUniform1i("u_EnvironmentMap", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemap);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
+		unsigned int maxMipLevels = 5;
+		for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+		{
+			// Reisze framebuffer according to mip-level size
+			unsigned int mipWidth = 128 * std::pow(0.5, mip);
+			unsigned int mipHeight = 128 * std::pow(0.5, mip);
+			glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+			glViewport(0, 0, mipWidth, mipHeight);
+
+			float roughness = (float)mip / (float)(maxMipLevels - 1);
+			m_PrefilterShader->SetUniform1f("roughness", roughness);
+			for (unsigned int i = 0; i < 6; ++i)
+			{
+				m_PrefilterShader->SetUniformMat4f("u_ViewProjection", captureProjection* captureViews[i]);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_PrefilterMap, mip);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				renderer.Draw(*m_BackgroundVAO, *m_IBO, *m_PrefilterShader);
+			}
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Generate a 2D LUT from the BRDF equations used
+		// ----------------------------------------------
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_BRDFLUTTexture);
+		// Rre-allocate enough memory for the LUT texture
+		glBindTexture(GL_TEXTURE_2D, m_BRDFLUTTexture);
+		glTextureStorage2D(m_BRDFLUTTexture, 1, GL_RG16F, 512, 512);
+		glTextureSubImage2D(m_BRDFLUTTexture, 0, 0, 0, 512, 512, GL_RG, GL_FLOAT, nullptr);
+		glTextureParameteri(m_BRDFLUTTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_BRDFLUTTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// Be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+		glTextureParameteri(m_BRDFLUTTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_BRDFLUTTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		// Then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+		glBindFramebuffer(GL_FRAMEBUFFER, m_CaptureFBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BRDFLUTTexture, 0);
+
+		glViewport(0, 0, 512, 512);
+		m_BRDFShader.reset(new Shader("res/shaders/BRDF.shader"));
+		m_BRDFShader->Bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		renderer.Draw(*m_QuadVAO, *m_QuadIBO, *m_BRDFShader);
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// -----------------------------------------------------------------------
@@ -715,7 +820,11 @@ namespace test
 		{
 			// Bind pre-computed IBL data
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMapTexture);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, m_BRDFLUTTexture);
 
 			m_PBRShader->Bind();
 			m_PBRShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
@@ -761,13 +870,19 @@ namespace test
 		// Render background cubemap at last to prevent overdraw
 		{
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemapTexture);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemap);
+			//glBindTexture(GL_TEXTURE_CUBE_MAP, u_IrradianceMap); // display irradiance map
+			//glBindTexture(GL_TEXTURE_CUBE_MAP, u_PrefilterMap); // display prefilter map
 			m_BackgroundShader->Bind();
 			m_BackgroundShader->SetUniformMat4f("u_View", m_View);
 			m_BackgroundShader->SetUniformMat4f("u_Projection", m_Proj);
 
 			renderer.Draw(*m_BackgroundVAO, *m_IBO, *m_BackgroundShader);
 		}
+
+		// Render BRDF map to screen
+		//m_BRDFShader->Bind();
+		//renderer.Draw(*m_QuadVAO, *m_QuadIBO, *m_BRDFShader);
 
 	}
 

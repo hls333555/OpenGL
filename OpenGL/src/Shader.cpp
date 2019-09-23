@@ -134,7 +134,15 @@ int Shader::CreateShader(const ShaderSources& shaderSources)
 	GLCALL(glGetProgramiv(program, GL_VALIDATE_STATUS, &result));
 	if (result == GL_FALSE)
 	{
+		int length;
+		GLCALL(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length));
+		// Allocate on the stack dynamically
+		char* message = (char*)_malloca(length * sizeof(char));
+		// Return the information log for the shader object
+		GLCALL(glGetProgramInfoLog(program, length, &length, message));
 		std::cout << "Failed to validate program!" << std::endl;
+		std::cout << message << std::endl;
+
 		//return 0;
 	}
 

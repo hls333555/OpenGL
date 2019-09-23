@@ -86,14 +86,20 @@ namespace test
 		std::unique_ptr<VertexArray> m_BackgroundVAO;
 		std::unique_ptr<VertexBuffer> m_BackgroundVBO;
 
+		std::unique_ptr<VertexArray> m_QuadVAO;
+		std::unique_ptr<VertexBuffer> m_QuadVBO;
+		std::unique_ptr<IndexBuffer> m_QuadIBO;
+
 		std::unique_ptr<Shader> m_PointLightShader;
 		std::vector<glm::vec3> m_PointLightPositions;
 		std::vector<glm::vec3> m_PointLightColors;
 
 		GLuint m_CaptureFBO, m_CaptureRBO;
-		GLuint m_HDRTexture, m_EnvCubemapTexture, m_IrradianceMapTexture;
+		GLuint m_HDRTexture, m_EnvCubemap, m_IrradianceMap;
+		GLuint m_PrefilterMap, m_BRDFLUTTexture;
 
 		std::unique_ptr<Shader> m_PBRShader, m_BackgroundShader, m_EquirectangularToCubemapShader, m_IrradianceShader;
+		std::unique_ptr<Shader> m_PrefilterShader, m_BRDFShader;
 
 		glm::mat4 m_Proj, m_View;
 

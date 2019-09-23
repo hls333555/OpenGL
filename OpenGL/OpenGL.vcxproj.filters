@@ -566,6 +566,8 @@
     <None Include="res\shaders\EquirectangularToCubemap.shader" />
     <None Include="res\shaders\IrradianceConvolution.shader" />
     <None Include="res\shaders\PBRBackground.shader" />
+    <None Include="res\shaders\Prefilter.shader" />
+    <None Include="res\shaders\BRDF.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
