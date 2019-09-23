@@ -45,16 +45,13 @@ struct Material
 	float metallic;
 	float roughness;
 	float ao;
-};
 
-struct Material2
-{
 	sampler2D baseColorMap;
-	//sampler2D normalMap;
+	sampler2D normalMap;
 	sampler2D metallicMap;
 	sampler2D roughnessMap;
-	//sampler2D aoMap;
-	float ao;
+	sampler2D aoMap;
+
 };
 
 struct PointLight
@@ -63,61 +60,25 @@ struct PointLight
 	vec3 color;
 };
 
-uniform bool u_bUseTexture;
+uniform bool u_bUseTextures;
 uniform Material u_Material;
-uniform Material2 u_Material2;
 uniform PointLight u_PointLights[NUM_POINTLIGHTS];
 uniform vec3 u_ViewPos;
 
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-	float a = roughness * roughness;
-	float a2 = a * a;
-	float NdotH = max(dot(N, H), 0.f);
-	float NdotH2 = NdotH * NdotH;
-
-	float nom = a2;
-	float denom = (NdotH2 * (a2 - 1.f) + 1.f);
-	denom = PI * denom * denom;
-
-	return nom / denom;
-}
-
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-	float r = roughness + 1.f;
-	float k = (r * r) / 8.f;
-
-	float nom = NdotV;
-	float denom = NdotV * (1.f - k) + k;
-
-	return nom / denom;
-}
-
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-	float NdotV = max(dot(N, V), 0.f);
-	float NdotL = max(dot(N, L), 0.f);
-	float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-	float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-	return ggx1 * ggx2;
-}
-
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
-	return F0 + (1.f - F0) * pow(1.f - cosTheta, 5.f);
-}
+vec3 getNormalFromMap();
+float DistributionGGX(vec3 N, vec3 H, float roughness);
+float GeometrySchlickGGX(float NdotV, float roughness);
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
+vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
 void main()
 {
-	vec3 baseColor = u_bUseTexture ? pow(texture(u_Material2.baseColorMap, fs_in.v_TexCoord).rgb, vec3(2.2)) : u_Material.baseColor;
-	float metallic = u_bUseTexture ? texture(u_Material2.metallicMap, fs_in.v_TexCoord).r : u_Material.metallic;
-	float roughness = u_bUseTexture ? texture(u_Material2.roughnessMap, fs_in.v_TexCoord).r : u_Material.roughness;
-	float ao = u_bUseTexture ? u_Material2.ao : u_Material.ao;
+	vec3 baseColor = u_bUseTextures ? pow(texture(u_Material.baseColorMap, fs_in.v_TexCoord).rgb, vec3(2.2f)) : u_Material.baseColor;
+	float metallic = u_bUseTextures ? texture(u_Material.metallicMap, fs_in.v_TexCoord).r : u_Material.metallic;
+	float roughness = u_bUseTextures ? texture(u_Material.roughnessMap, fs_in.v_TexCoord).r : u_Material.roughness;
+	float ao = u_bUseTextures ? texture(u_Material.aoMap, fs_in.v_TexCoord).r : u_Material.ao;
 
-	vec3 N = normalize(fs_in.v_Normal);
-	// vec3 N = getNormalFromMap();
+	vec3 N = u_bUseTextures ? getNormalFromMap() : normalize(fs_in.v_Normal);
 	vec3 V = normalize(u_ViewPos - fs_in.v_WorldPos);
 
 	// Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
@@ -127,7 +88,7 @@ void main()
 
 	// Reflectance equation
 	vec3 Lo = vec3(0.f);
-	int num = u_bUseTexture ? 1 : NUM_POINTLIGHTS;
+	int num = u_bUseTextures ? 1 : NUM_POINTLIGHTS;
 	for (int i = 0; i < num; ++i)
 	{
 		// Calculate per-light radiance
@@ -177,4 +138,64 @@ void main()
 	color = pow(color, vec3(1.f / 2.2f));
 
 	fragColor = vec4(color, 1.f);
+}
+
+// ----------------------------------------------------------------------------
+// Easy trick to get tangent-normals to world-space to keep PBR code simplified
+
+vec3 getNormalFromMap()
+{
+	vec3 tangentNormal = texture(u_Material.normalMap, fs_in.v_TexCoord).xyz * 2.f - 1.f;
+
+	vec3 Q1 = dFdx(fs_in.v_WorldPos);
+	vec3 Q2 = dFdy(fs_in.v_WorldPos);
+	vec2 st1 = dFdx(fs_in.v_TexCoord);
+	vec2 st2 = dFdy(fs_in.v_TexCoord);
+
+	vec3 N = normalize(fs_in.v_Normal);
+	vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
+	vec3 B = -normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+
+	return normalize(TBN * tangentNormal);
+}
+
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+	float a = roughness * roughness;
+	float a2 = a * a;
+	float NdotH = max(dot(N, H), 0.f);
+	float NdotH2 = NdotH * NdotH;
+
+	float nom = a2;
+	float denom = (NdotH2 * (a2 - 1.f) + 1.f);
+	denom = PI * denom * denom;
+
+	return nom / denom;
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+	float r = roughness + 1.f;
+	float k = (r * r) / 8.f;
+
+	float nom = NdotV;
+	float denom = NdotV * (1.f - k) + k;
+
+	return nom / denom;
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+	float NdotV = max(dot(N, V), 0.f);
+	float NdotL = max(dot(N, L), 0.f);
+	float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+	float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+	return ggx1 * ggx2;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+	return F0 + (1.f - F0) * pow(1.f - cosTheta, 5.f);
 }

@@ -56,6 +56,7 @@ struct PointLight
 };
 
 uniform vec3 u_ViewPos;
+uniform bool u_bUseTextures;
 uniform Material u_Material;
 uniform PointLight u_PointLights[NUM_POINTLIGHTS];
 // IBL
@@ -64,7 +65,13 @@ uniform PointLight u_PointLights[NUM_POINTLIGHTS];
 layout(binding = 0) uniform samplerCube u_IrradianceMap;
 layout(binding = 1) uniform samplerCube u_PrefilterMap;
 layout(binding = 2) uniform sampler2D u_BRDFLUT;
+layout(binding = 3) uniform sampler2D baseColorMap;
+layout(binding = 4) uniform sampler2D normalMap;
+layout(binding = 5) uniform sampler2D metallicMap;
+layout(binding = 6) uniform sampler2D roughnessMap;
+layout(binding = 7) uniform sampler2D aoMap;
 
+vec3 getNormalFromMap();
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
@@ -73,14 +80,19 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 void main()
 {
-	vec3 N = fs_in.v_Normal;
+	vec3 baseColor = u_bUseTextures ? pow(texture(baseColorMap, fs_in.v_TexCoord).rgb, vec3(2.2f)) : u_Material.baseColor;
+	float metallic = u_bUseTextures ? texture(metallicMap, fs_in.v_TexCoord).r : u_Material.metallic;
+	float roughness = u_bUseTextures ? texture(roughnessMap, fs_in.v_TexCoord).r : u_Material.roughness;
+	float ao = u_bUseTextures ? texture(aoMap, fs_in.v_TexCoord).r : u_Material.ao;
+
+	vec3 N = u_bUseTextures ? getNormalFromMap() : normalize(fs_in.v_Normal);
 	vec3 V = normalize(u_ViewPos - fs_in.v_WorldPos);
 	vec3 R = reflect(-V, N);
 
 	// Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
 	// of 0.04 and if it's a metal, use the baseColor color as F0 (metallic workflow)    
 	vec3 F0 = vec3(0.04f);
-	F0 = mix(F0, u_Material.baseColor, u_Material.metallic);
+	F0 = mix(F0, baseColor, metallic);
 
 	// Reflectance equation
 	vec3 Lo = vec3(0.f);
@@ -94,8 +106,8 @@ void main()
 		vec3 radiance = u_PointLights[i].color * attenuation;
 
 		// Cook-Torrance BRDF
-		float NDF = DistributionGGX(N, H, u_Material.roughness);
-		float G = GeometrySmith(N, V, L, u_Material.roughness);
+		float NDF = DistributionGGX(N, H, roughness);
+		float G = GeometrySmith(N, V, L, roughness);
 		vec3 F = fresnelSchlick(max(dot(H, V), 0.f), F0);
 
 		vec3 nominator = NDF * G * F;
@@ -111,31 +123,31 @@ void main()
 		// Multiply kD by the inverse metalness such that only non-metals 
 		// have diffuse lighting, or a linear blend if partly metal (pure metals
 		// have no diffuse light)
-		kD *= 1.f - u_Material.metallic;
+		kD *= 1.f - metallic;
 
 		// Scale light by NdotL
 		float NdotL = max(dot(N, L), 0.f);
 
 		// Add to outgoing radiance Lo
-		Lo += (kD * u_Material.baseColor / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+		Lo += (kD * baseColor / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
 	}
 
 	// Ambient lighting (we now use IBL as the ambient term)
-	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.f), F0, u_Material.roughness);
+	vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.f), F0, roughness);
 
 	vec3 kS = F;
 	vec3 kD = 1.f - kS;
-	kD *= 1.f - u_Material.metallic;
+	kD *= 1.f - metallic;
 
 	vec3 irradiance = texture(u_IrradianceMap, N).rgb;
-	vec3 diffuse = irradiance * u_Material.baseColor;
+	vec3 diffuse = irradiance * baseColor;
 
 	// Sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part
-	vec3 prefilteredColor = textureLod(u_PrefilterMap, R, u_Material.roughness * MAX_REFLECTION_LOD).rgb;
-	vec2 BRDF = texture(u_BRDFLUT, vec2(max(dot(N, V), 0.f), u_Material.roughness)).rg;
+	vec3 prefilteredColor = textureLod(u_PrefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 BRDF = texture(u_BRDFLUT, vec2(max(dot(N, V), 0.f), roughness)).rg;
 	vec3 specular = prefilteredColor * (F * BRDF.x + BRDF.y);
 
-	vec3 ambient = (kD * diffuse + specular) * u_Material.ao;
+	vec3 ambient = (kD * diffuse + specular) * ao;
 
 	vec3 color = ambient + Lo;
 
@@ -145,6 +157,26 @@ void main()
 	color = pow(color, vec3(1.f / 2.2f));
 
 	fragColor = vec4(color, 1.f);
+}
+
+// ----------------------------------------------------------------------------
+// Easy trick to get tangent-normals to world-space to keep PBR code simplified
+
+vec3 getNormalFromMap()
+{
+	vec3 tangentNormal = texture(normalMap, fs_in.v_TexCoord).xyz * 2.f - 1.f;
+
+	vec3 Q1 = dFdx(fs_in.v_WorldPos);
+	vec3 Q2 = dFdy(fs_in.v_WorldPos);
+	vec2 st1 = dFdx(fs_in.v_TexCoord);
+	vec2 st2 = dFdy(fs_in.v_TexCoord);
+
+	vec3 N = normalize(fs_in.v_Normal);
+	vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
+	vec3 B = -normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+
+	return normalize(TBN * tangentNormal);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

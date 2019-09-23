@@ -34,11 +34,12 @@ namespace test
 		std::unique_ptr<IndexBuffer> m_IBO;
 		std::unique_ptr<Shader> m_Shader;
 
-		bool m_bUseTexture = true;
+		bool m_bUseTextures = true;
 		std::unique_ptr<Texture> m_BaseColorTexture;
-		//std::unique_ptr<Texture> m_NormalTexture;
+		std::unique_ptr<Texture> m_NormalTexture;
 		std::unique_ptr<Texture> m_RoughnessTexture;
 		std::unique_ptr<Texture> m_MetallicTexture;
+		std::unique_ptr<Texture> m_AOTexture;
 
 		std::unique_ptr<Shader> m_PointLightShader;
 		std::vector<glm::vec3>* m_PointLightPositions;
@@ -89,6 +90,13 @@ namespace test
 		std::unique_ptr<VertexArray> m_QuadVAO;
 		std::unique_ptr<VertexBuffer> m_QuadVBO;
 		std::unique_ptr<IndexBuffer> m_QuadIBO;
+
+		bool m_bUseTextures = false;
+		std::vector<std::unique_ptr<Texture>> m_BaseColorTextures;
+		std::vector<std::unique_ptr<Texture>> m_NormalTextures;
+		std::vector<std::unique_ptr<Texture>> m_RoughnessTextures;
+		std::vector<std::unique_ptr<Texture>> m_MetallicTextures;
+		std::vector<std::unique_ptr<Texture>> m_AOTextures;
 
 		std::unique_ptr<Shader> m_PointLightShader;
 		std::vector<glm::vec3> m_PointLightPositions;

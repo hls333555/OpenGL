@@ -38,16 +38,16 @@ void renderSphere()
 
 		const unsigned int X_SEGMENTS = 64;
 		const unsigned int Y_SEGMENTS = 64;
-		const float PI = 3.14159265359;
+		const float PI = 3.14159265359f;
 		for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
 		{
 			for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
 			{
 				float xSegment = (float)x / (float)X_SEGMENTS;
 				float ySegment = (float)y / (float)Y_SEGMENTS;
-				float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+				float xPos = std::cos(xSegment * 2.f * PI) * std::sin(ySegment * PI);
 				float yPos = std::cos(ySegment * PI);
-				float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+				float zPos = std::sin(xSegment * 2.f * PI) * std::sin(ySegment * PI);
 
 				positions.push_back(glm::vec3(xPos, yPos, zPos));
 				normals.push_back(glm::vec3(xPos, yPos, zPos));
@@ -76,7 +76,7 @@ void renderSphere()
 			}
 			oddRow = !oddRow;
 		}
-		indexCount = indices.size();
+		indexCount = (unsigned int)indices.size();
 
 		std::vector<float> data;
 		for (int i = 0; i < positions.size(); ++i)
@@ -101,7 +101,7 @@ void renderSphere()
 		glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-		float stride = (3 + 3 + 2) * sizeof(float);
+		int stride = (3 + 3 + 2) * sizeof(float);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
 		glEnableVertexAttribArray(1);
@@ -125,7 +125,7 @@ namespace test
 		, m_CameraPos(DEFAULT_CAMERAPOS)
 		, m_CameraFront(DEFAULT_CAMERAFRONT)
 		, m_CameraUp(glm::vec3(0.f, 1.f, 0.f))
-		, m_CameraMoveSpeed(3.f)
+		, m_CameraMoveSpeed(10.f)
 		, m_CameraRotSpeed(15.f)
 		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
 	{
@@ -228,17 +228,17 @@ namespace test
 		m_Shader->SetUniform3f("u_Material.baseColor", 0.5f, 0.f, 0.f);
 		m_Shader->SetUniform1f("u_Material.ao", 1.f);
 
-		// The texture may be loaded upside-down!
-		m_BaseColorTexture.reset(new Texture("res/textures/PBR/rusted_iron/rustediron2_basecolor.png"));
-		//m_NormalTexture.reset(new Texture("res/textures/PBR/rusted_iron/rustediron2_normal.png"));
-		m_MetallicTexture.reset(new Texture("res/textures/PBR/rusted_iron/rustediron2_metallic.png"));
-		m_RoughnessTexture.reset(new Texture("res/textures/PBR/rusted_iron/rustediron2_roughness.png"));
+		m_BaseColorTexture.reset(new Texture("res/textures/PBR/bamboo_wood/color.png"));
+		m_NormalTexture.reset(new Texture("res/textures/PBR/bamboo_wood/normal.png"));
+		m_MetallicTexture.reset(new Texture("res/textures/PBR/bamboo_wood/metal.png"));
+		m_RoughnessTexture.reset(new Texture("res/textures/PBR/bamboo_wood/roughness.png"));
+		m_AOTexture.reset(new Texture("res/textures/PBR/bamboo_wood/ao.png"));
 
-		m_Shader->SetUniform1i("u_Material2.baseColorMap", 0);
-		//m_Shader->SetUniform1i("u_Material2.normalMap", 1);
-		m_Shader->SetUniform1i("u_Material2.metallicMap", 2);
-		m_Shader->SetUniform1i("u_Material2.roughnessMap", 3);
-		m_Shader->SetUniform1f("u_Material2.ao", 1.f);
+		m_Shader->SetUniform1i("u_Material.baseColorMap", 0);
+		m_Shader->SetUniform1i("u_Material.normalMap", 1);
+		m_Shader->SetUniform1i("u_Material.metallicMap", 2);
+		m_Shader->SetUniform1i("u_Material.roughnessMap", 3);
+		m_Shader->SetUniform1i("u_Material.aoMap", 4);
 
 		m_PointLightShader.reset(new Shader("res/shaders/BasicColor.shader"));
 
@@ -253,18 +253,24 @@ namespace test
 		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
 		// Render spheres with textures or with varying metallic/roughness values scaled by rows and columns respectively
 		{
-			if (m_bUseTexture)
+			if (m_bUseTextures)
 			{
 				m_BaseColorTexture->Bind();
-				//m_NormalTexture->Bind(1);
+				m_NormalTexture->Bind(1);
 				m_MetallicTexture->Bind(2);
 				m_RoughnessTexture->Bind(3);
+				m_AOTexture->Bind(4);
+				m_PointLightPositions = &m_PointLightPositions2;
+				m_PointLightColors = &m_PointLightColors2;
+			}
+			else
+			{
+				m_PointLightPositions = &m_PointLightPositions1;
+				m_PointLightColors = &m_PointLightColors1;
 			}
 			
-			m_PointLightPositions = m_bUseTexture ? &m_PointLightPositions2 : &m_PointLightPositions1;
-			m_PointLightColors = m_bUseTexture ? &m_PointLightColors2 : &m_PointLightColors1;
 			m_Shader->Bind();
-			m_Shader->SetUniform1i("u_bUseTexture", m_bUseTexture);
+			m_Shader->SetUniform1i("u_bUseTextures", m_bUseTextures);
 			m_Shader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 			m_Shader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 			for (unsigned int row = 0; row < 7; ++row)
@@ -319,7 +325,7 @@ namespace test
 			ResetView();
 		}
 		
-		ImGui::Checkbox(u8"使用材质", &m_bUseTexture);
+		ImGui::Checkbox(u8"使用材质", &m_bUseTextures);
 
 	}
 
@@ -424,11 +430,11 @@ namespace test
 	float Test_IBLPBR::s_FOVMax = 90.f;
 
 	Test_IBLPBR::Test_IBLPBR()
-		: m_CameraOrbitRadius(3.f)
+		: m_CameraOrbitRadius(5.f)
 		, m_CameraPos(DEFAULT_CAMERAPOS)
 		, m_CameraFront(DEFAULT_CAMERAFRONT)
 		, m_CameraUp(glm::vec3(0.f, 1.f, 0.f))
-		, m_CameraMoveSpeed(3.f)
+		, m_CameraMoveSpeed(10.f)
 		, m_CameraRotSpeed(15.f)
 		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
 	{
@@ -575,6 +581,49 @@ namespace test
 		//m_PBRShader->SetUniform1i("u_BRDFLUT", 2);
 		m_PBRShader->SetUniform3f("u_Material.baseColor", 1.f, 1.f, 1.f);
 		m_PBRShader->SetUniform1f("u_Material.ao", 1.f);
+
+		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/color.png"));
+		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/normal.png"));
+		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/metallic.png"));
+		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/roughness.png"));
+		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/ao.png"));
+
+		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/color.png"));
+		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/normal.png"));
+		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/metallic.png"));
+		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/roughness.png"));
+		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/ao.png"));
+
+		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/color.png"));
+		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/normal.png"));
+		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/metallic.png"));
+		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/roughness.png"));
+		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/ao.png"));
+
+		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/color.png"));
+		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/normal.png"));
+		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/metallic.png"));
+		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/roughness.png"));
+		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/ao.png"));
+
+		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/color.png"));
+		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/normal.png"));
+		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/metallic.png"));
+		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/roughness.png"));
+		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/ao.png"));
+
+		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/color.png"));
+		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/normal.png"));
+		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/metallic.png"));
+		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/roughness.png"));
+		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/ao.png"));
+
+		// Bindings are set in shader directly
+		//m_PBRShader->SetUniform1i("baseColorMap", 3);
+		//m_PBRShader->SetUniform1i("normalMap", 4);
+		//m_PBRShader->SetUniform1i("metallicMap", 5);
+		//m_PBRShader->SetUniform1i("roughnessMap", 6);
+		//m_PBRShader->SetUniform1i("aoMap", 7);
 
 		m_BackgroundVAO.reset(new VertexArray());
 		m_BackgroundVBO.reset(new VertexBuffer(backgroundVertices, 72 * sizeof(float)));
@@ -756,11 +805,11 @@ namespace test
 		for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
 		{
 			// Reisze framebuffer according to mip-level size
-			unsigned int mipWidth = 128 * std::pow(0.5, mip);
-			unsigned int mipHeight = 128 * std::pow(0.5, mip);
+			double mipWidth = 128 * std::pow(0.5f, mip);
+			double mipHeight = 128 * std::pow(0.5f, mip);
 			glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-			glViewport(0, 0, mipWidth, mipHeight);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, (int)mipWidth, (int)mipHeight);
+			glViewport(0, 0, (int)mipWidth, (int)mipHeight);
 
 			float roughness = (float)mip / (float)(maxMipLevels - 1);
 			m_PrefilterShader->SetUniform1f("roughness", roughness);
@@ -818,7 +867,7 @@ namespace test
 		Renderer renderer;
 		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
-		// Render spheres with varying metallic/roughness values scaled by rows and columns respectively
+		// Render spheres
 		{
 			// Bind pre-computed IBL data
 			glActiveTexture(GL_TEXTURE0);
@@ -829,21 +878,42 @@ namespace test
 			glBindTexture(GL_TEXTURE_2D, m_BRDFLUTTexture);
 
 			m_PBRShader->Bind();
+			m_PBRShader->SetUniform1i("u_bUseTextures", m_bUseTextures);
 			m_PBRShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
 			m_PBRShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
-			for (unsigned int row = 0; row < 7; ++row)
+			// Render spheres with textures
+			if (m_bUseTextures)
 			{
-				m_PBRShader->SetUniform1f("u_Material.metallic", row / 7.f);
-				for (unsigned int col = 0; col < 7; ++col)
+				for (unsigned int i = 0; i < m_BaseColorTextures.size(); ++i)
 				{
-					// We clamp the roughness to 0.05f - 1.f
-					// as perfectly smooth surfaces (roughness of 0.f) tend to look a bit off on direct lighting
-					m_PBRShader->SetUniform1f("u_Material.roughness", glm::clamp(col / 7.f, 0.05f, 1.f));
+					m_BaseColorTextures[i]->Bind(3);
+					m_NormalTextures[i]->Bind(4);
+					m_MetallicTextures[i]->Bind(5);
+					m_RoughnessTextures[i]->Bind(6);
+					m_AOTextures[i]->Bind(7);
 
-					glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3((col - 3.f) * 2.5f, (row - 3.f) * 2.5f, 0.f));
+					glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3(-4.f + i * 2, 0.f, 0.f));
 					m_PBRShader->SetUniformMat4f("u_Model", model);
-
 					renderSphere();
+				}
+			}
+			// Render spheres with varying metallic/roughness values scaled by rows and columns respectively
+			else
+			{
+				for (unsigned int row = 0; row < 7; ++row)
+				{
+					m_PBRShader->SetUniform1f("u_Material.metallic", row / 7.f);
+					for (unsigned int col = 0; col < 7; ++col)
+					{
+						// We clamp the roughness to 0.05f - 1.f
+						// as perfectly smooth surfaces (roughness of 0.f) tend to look a bit off on direct lighting
+						m_PBRShader->SetUniform1f("u_Material.roughness", glm::clamp(col / 7.f, 0.05f, 1.f));
+
+						glm::mat4 model = glm::translate(glm::mat4(1.f), glm::vec3((col - 3.f) * 2.5f, (row - 3.f) * 2.5f, 0.f));
+						m_PBRShader->SetUniformMat4f("u_Model", model);
+
+						renderSphere();
+					}
 				}
 			}
 		}
@@ -873,8 +943,8 @@ namespace test
 		{
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemap);
-			//glBindTexture(GL_TEXTURE_CUBE_MAP, u_IrradianceMap); // display irradiance map
-			//glBindTexture(GL_TEXTURE_CUBE_MAP, u_PrefilterMap); // display prefilter map
+			//glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap); // display irradiance map
+			//glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap); // display prefilter map
 			m_BackgroundShader->Bind();
 			m_BackgroundShader->SetUniformMat4f("u_View", m_View);
 			m_BackgroundShader->SetUniformMat4f("u_Projection", m_Proj);
@@ -898,6 +968,8 @@ namespace test
 		{
 			ResetView();
 		}
+
+		ImGui::Checkbox(u8"使用材质", &m_bUseTextures);
 
 	}
 

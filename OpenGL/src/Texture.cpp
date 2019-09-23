@@ -2,7 +2,7 @@
 
 #include "stb_image/stb_image.h"
 
-Texture::Texture(const std::string& filePath, TextureType type)
+Texture::Texture(const std::string& filePath, TextureType type, bool bFlipOnLoad)
 	: m_RendererID(0)
 	, m_FilePath(filePath)
 	, m_LocalBuffer(nullptr)
@@ -11,10 +11,10 @@ Texture::Texture(const std::string& filePath, TextureType type)
 	, m_BPP(0)
 	, m_Type(type)
 {
-	LoadTexture(filePath);
+	LoadTexture(filePath, bFlipOnLoad);
 }
 
-Texture::Texture(const std::string& mainFilePath, const std::string& subFilePath, TextureType type)
+Texture::Texture(const std::string& mainFilePath, const std::string& subFilePath, TextureType type, bool bFlipOnLoad)
 	: m_RendererID(0)
 	, m_FilePath(mainFilePath + subFilePath)
 	, m_LocalBuffer(nullptr)
@@ -23,14 +23,14 @@ Texture::Texture(const std::string& mainFilePath, const std::string& subFilePath
 	, m_BPP(0)
 	, m_Type(type)
 {
-	LoadTexture(mainFilePath + subFilePath);
+	LoadTexture(mainFilePath + subFilePath, bFlipOnLoad);
 }
 
-void Texture::LoadTexture(const std::string& filePath)
+void Texture::LoadTexture(const std::string& filePath, bool bFlipOnLoad)
 {
 	// OpenGL expects the texture pixels to start at the bottom-left(0,0) instead of the top-left
 	// Typically, when png image is being loaded, it is stored in scanlines from the top to the bottom of the image, so we need to flip it on load
-	stbi_set_flip_vertically_on_load(1);
+	stbi_set_flip_vertically_on_load(bFlipOnLoad);
 	m_LocalBuffer = stbi_load(filePath.c_str(), &m_Width, &m_Height, &m_BPP, 4/*RGBA*/);
 
 	// Generate texture names

@@ -15,8 +15,8 @@ enum class TextureType
 class Texture
 {
 public:
-	Texture(const std::string& filePath, TextureType type = TextureType::None);
-	Texture(const std::string& mainFilePath, const std::string& subFilePath, TextureType type);
+	Texture(const std::string& filePath, TextureType type = TextureType::None, bool bFlipOnLoad = true);
+	Texture(const std::string& mainFilePath, const std::string& subFilePath, TextureType type, bool bFlipOnLoad = true);
 	~Texture();
 
 	inline int GetWidth() const { return m_Width; }
@@ -30,7 +30,7 @@ public:
 	void Unbind() const;
 
 private:
-	void LoadTexture(const std::string& filePath);
+	void LoadTexture(const std::string& filePath, bool bFlipOnLoad = true);
 
 private:
 	unsigned int m_RendererID;
