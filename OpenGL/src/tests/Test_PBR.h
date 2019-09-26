@@ -9,6 +9,7 @@
 #include "IndexBuffer.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Model.h"
 
 namespace test
 {
@@ -94,18 +95,45 @@ namespace test
 		bool m_bUseTextures = false;
 		std::vector<std::unique_ptr<Texture>> m_BaseColorTextures;
 		std::vector<std::unique_ptr<Texture>> m_NormalTextures;
-		std::vector<std::unique_ptr<Texture>> m_RoughnessTextures;
 		std::vector<std::unique_ptr<Texture>> m_MetallicTextures;
+		std::vector<std::unique_ptr<Texture>> m_RoughnessTextures;
 		std::vector<std::unique_ptr<Texture>> m_AOTextures;
 
+		std::vector<std::string> m_BaseColorPaths;
+		std::vector<std::string> m_NormalPaths;
+		std::vector<std::string> m_MetallicPaths;
+		std::vector<std::string> m_RoughnessPaths;
+		std::vector<std::string> m_AOPaths;
+
+		std::unique_ptr<Model> m_Model;
+		bool m_bUseModel = false;
+		bool m_bFirstUseModel = true;
+
+		bool m_bMotionOn = false;
+		float m_ModelMotionRotation = 0.f;
+		float m_ModelRotSpeed;
+		float m_ModelScale;
+		glm::vec3 m_ModelTranslation = { 0.f, 0.f, 0.f };
+		glm::vec3 m_ModelRotation = { 0.f, 0.f, -90.f };
+		//bool m_bRenderModelNormals = false;
+
 		std::unique_ptr<Shader> m_PointLightShader;
-		std::vector<glm::vec3> m_PointLightPositions;
-		std::vector<glm::vec3> m_PointLightColors;
+		std::vector<glm::vec3>* m_PointLightPositions;
+		std::vector<glm::vec3> m_PointLightPositions1;
+		std::vector<glm::vec3> m_PointLightPositions2;
+		std::vector<glm::vec3>* m_PointLightColors;
+		std::vector<glm::vec3> m_PointLightColors1;
+		std::vector<glm::vec3> m_PointLightColors2;
+
+		bool m_bRenderPointlights = true;
+
+		int m_BackgroundStyle;
 
 		GLuint m_CaptureFBO, m_CaptureRBO;
 		GLuint m_HDRTexture, m_EnvCubemap, m_IrradianceMap;
 		GLuint m_PrefilterMap, m_BRDFLUTTexture;
 
+		std::unique_ptr<Shader> m_ModelDefaultShader;
 		std::unique_ptr<Shader> m_PBRShader, m_BackgroundShader, m_EquirectangularToCubemapShader, m_IrradianceShader;
 		std::unique_ptr<Shader> m_PrefilterShader, m_BRDFShader;
 

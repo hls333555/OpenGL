@@ -16,23 +16,24 @@ Mesh::Mesh(Model* ownerModel, const std::string& name, std::vector<Vertex> verti
 
 void Mesh::Draw(const Shader& shader)
 {
-	unsigned int num[2] = {0, 0};
+	unsigned int num[2] = { 0, 0 };
 	shader.Bind();
+	auto& s = const_cast<Shader&>(shader);
 	// Disable specular calculation if no specular texture is assigned
-	const_cast<Shader&>(shader).SetUniform1i("u_Material.bHasSpecular", 0);
+	s.SetUniform1i("u_Material.bHasSpecular", 0);
 	for (unsigned int i = 0; i < m_Textures.size(); ++i)
 	{
 		std::string type;
 		switch (m_Textures[i]->GetType())
 		{
-		case TextureType::Diffuse:
+		case TextureType::BaseColor:
 			type = "diffuseTex";
-			const_cast<Shader&>(shader).SetUniform1i("u_Material." + type + std::to_string(++num[0]), i);
+			s.SetUniform1i("u_Material." + type + std::to_string(++num[0]), i);
 			break;
 		case TextureType::Specular:
-			const_cast<Shader&>(shader).SetUniform1i("u_Material.bHasSpecular", 1);
+			s.SetUniform1i("u_Material.bHasSpecular", true);
 			type = "specularTex";
-			const_cast<Shader&>(shader).SetUniform1i("u_Material." + type + std::to_string(++num[1]), i);
+			s.SetUniform1i("u_Material." + type + std::to_string(++num[1]), i);
 			break;
 		default:
 			ASSERT(false);
@@ -49,6 +50,66 @@ void Mesh::Draw(const Shader& shader)
 	renderer.Draw(*m_VAO, *m_IBO, shader);
 }
 
+void Mesh::DrawPBR(const Shader& shader, const std::unique_ptr<Shader>& defaultShader)
+{
+	Renderer renderer;
+
+	// The first 3 texture units are for PBR required maps
+	// At least, assimp is guaranteed to load basecolor, normal and roughness textures if exists
+	// The bound texture units are hard-coded in PBR shader file, you must ensure they match
+	// Also note that you must set uniform bindings manually here if binding points are not specified in PBR shader file
+	unsigned int b = 0x0;
+	for (auto& texture : m_Textures)
+	{
+		switch (texture->GetType())
+		{
+		case TextureType::BaseColor:
+			texture->Bind(3);
+			b |= 0x1 << 4;
+			break;
+		case TextureType::Normal:
+			texture->Bind(4);
+			b |= 0x1 << 3;
+			break;
+		case TextureType::Metallic:
+			texture->Bind(5);
+			b |= 0x1 << 2;
+			break;
+		case TextureType::Roughness:
+			texture->Bind(6);
+			b |= 0x1 << 1;
+			break;
+		case TextureType::AO:
+			texture->Bind(7);
+			b |= 0x1;
+			break;
+		default:
+		  	ASSERT(false);
+		}
+	}
+
+	// Unbind texture units which current mesh does not have
+	// to prevent current mesh from wrongly using last mesh's bound texture
+	for (unsigned int i = 0; i < 5; ++i)
+	{
+		if (!(b >> (4 - i) & 0x1))
+		{
+			// Use default lighting shader if basecolor texture is not (successfully) loaded
+			// Comment these lines to disable this feature
+			if (i == 0)
+			{
+				ASSERT(defaultShader);
+				renderer.Draw(*m_VAO, *m_IBO, *defaultShader);
+				return;
+			}
+			glActiveTexture(GL_TEXTURE0 + 3 + i);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+	}
+
+	renderer.Draw(*m_VAO, *m_IBO, shader);
+}
+
 void Mesh::SetTexture(const std::string& path, TextureType type)
 {
 	// Remove the texture of the same type first if found
@@ -62,7 +123,7 @@ void Mesh::SetTexture(const std::string& path, TextureType type)
 	bool bSkip = false;
 	for (const auto& loadedTexture : loadedTextures)
 	{
-		// If the texture to be loaded is already loaded AND their type corresponds, just add that to m_Textures
+		// If the texture to be loaded is already loaded AND their types correspond, skip loading...
 		if (loadedTexture->GetFilePath() == path && loadedTexture->GetType() == type)
 		{
 			m_Textures.push_back(loadedTexture);
@@ -73,7 +134,15 @@ void Mesh::SetTexture(const std::string& path, TextureType type)
 	// Otherwise, load it
 	if (!bSkip)
 	{
-		m_Textures.push_back(std::make_shared<Texture>(path, type));
+		std::shared_ptr<Texture> texture = std::make_shared<Texture>(path, type);
+		if (texture->GetLoadResult())
+		{
+			// Note: If, for example, you assign the texture of metallic texture slot to the ao texture slot,
+			// the size of m_Texture remains unchanged (this newly loaded texture will take place of the original ao texture),
+			// but the size of loadedTextures will increase 1 since it will load the already loaded metallic texture again
+			m_Textures.push_back(texture);
+			loadedTextures.push_back(texture);
+		}
 	}
 }
 

@@ -7,9 +7,12 @@
 enum class TextureType
 {
 	None = -1,
-	Diffuse,
-	Normal,
+	BaseColor,
 	Specular,
+	Normal,
+	Metallic,
+	Roughness,
+	AO,
 };
 
 class Texture
@@ -23,6 +26,7 @@ public:
 	inline int GetHeight() const { return m_Height; }
 	inline const std::string& GetFilePath() const { return m_FilePath; }
 	inline TextureType GetType() const { return m_Type; }
+	inline bool GetLoadResult() const { return m_bSuccess; }
 
 	/** Bind a named texture to a texturing target with the specified slot. */
 	void Bind(unsigned int slot = 0) const;
@@ -37,6 +41,7 @@ private:
 
 	std::string m_FilePath;
 	unsigned char* m_LocalBuffer;
+	bool m_bSuccess;
 	int m_Width, m_Height, m_BPP;
 
 	TextureType m_Type;

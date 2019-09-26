@@ -28,7 +28,7 @@ void main()
 #version 330 core
 
 #define PI 3.14159265359
-#define NUM_POINTLIGHTS 4
+#define MAX_POINTLIGHTS 4
 
 in VS_OUT
 {
@@ -62,7 +62,7 @@ struct PointLight
 
 uniform bool u_bUseTextures;
 uniform Material u_Material;
-uniform PointLight u_PointLights[NUM_POINTLIGHTS];
+uniform PointLight u_PointLights[MAX_POINTLIGHTS];
 uniform vec3 u_ViewPos;
 
 vec3 getNormalFromMap();
@@ -88,8 +88,7 @@ void main()
 
 	// Reflectance equation
 	vec3 Lo = vec3(0.f);
-	int num = u_bUseTextures ? 1 : NUM_POINTLIGHTS;
-	for (int i = 0; i < num; ++i)
+	for (int i = 0; i < MAX_POINTLIGHTS; ++i)
 	{
 		// Calculate per-light radiance
 		vec3 L = normalize(u_PointLights[i].position - fs_in.v_WorldPos);

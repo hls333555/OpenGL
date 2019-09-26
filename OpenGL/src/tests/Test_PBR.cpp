@@ -3,7 +3,11 @@
 #include "VertexBufferLayout.h"
 
 #include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 #include "stb_image/stb_image.h"
 
 #include <iostream>
@@ -430,13 +434,16 @@ namespace test
 	float Test_IBLPBR::s_FOVMax = 90.f;
 
 	Test_IBLPBR::Test_IBLPBR()
-		: m_CameraOrbitRadius(5.f)
+		: m_ModelRotSpeed(90.f)
+		, m_ModelScale(0.05f)
+		, m_CameraOrbitRadius(6.f)
 		, m_CameraPos(DEFAULT_CAMERAPOS)
 		, m_CameraFront(DEFAULT_CAMERAFRONT)
 		, m_CameraUp(glm::vec3(0.f, 1.f, 0.f))
 		, m_CameraMoveSpeed(10.f)
 		, m_CameraRotSpeed(15.f)
 		, m_Yaw(DEFAULT_YAW), m_Pitch(DEFAULT_PITCH)
+		, m_BackgroundStyle(2)
 	{
 		// WORKAROUND: C style function pointer must take a static function if it is a member function!
 		glfwSetScrollCallback(Test::s_Window, OnMouseScroll);
@@ -540,18 +547,28 @@ namespace test
 			3, 1, 2
 		};
 
-		m_PointLightPositions = {
+		m_PointLightPositions1 = {
 			{ -10.f, -10.f, 10.f},
 			{  10.f, -10.f, 10.f},
 			{  10.f,  10.f, 10.f},
 			{ -10.f,  10.f, 10.f}
 		};
 
-		m_PointLightColors = {
+		m_PointLightColors1 = {
 			{300.f, 300.f, 300.f},
 			{300.f, 300.f, 300.f},
 			{300.f, 300.f, 300.f},
 			{300.f, 300.f, 300.f},
+		};
+
+		m_PointLightPositions2 = {
+			{ 0.f, 0.f, 3.f},
+			{ 0.f, 0.f, -3.f}
+		};
+
+		m_PointLightColors2 = {
+			{10.f, 10.f, 10.f},
+			{10.f, 10.f, 10.f},
 		};
 
 		glEnable(GL_DEPTH_TEST);
@@ -579,51 +596,15 @@ namespace test
 		//m_PBRShader->SetUniform1i("u_IrradianceMap", 0);
 		//m_PBRShader->SetUniform1i("u_PrefilterMap", 1);
 		//m_PBRShader->SetUniform1i("u_BRDFLUT", 2);
-		m_PBRShader->SetUniform3f("u_Material.baseColor", 1.f, 1.f, 1.f);
-		m_PBRShader->SetUniform1f("u_Material.ao", 1.f);
-
-		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/color.png"));
-		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/normal.png"));
-		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/metallic.png"));
-		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/roughness.png"));
-		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/ao.png"));
-
-		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/color.png"));
-		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/normal.png"));
-		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/metallic.png"));
-		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/roughness.png"));
-		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/ao.png"));
-
-		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/color.png"));
-		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/normal.png"));
-		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/metallic.png"));
-		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/roughness.png"));
-		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/ao.png"));
-
-		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/color.png"));
-		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/normal.png"));
-		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/metallic.png"));
-		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/roughness.png"));
-		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/ao.png"));
-
-		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/color.png"));
-		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/normal.png"));
-		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/metallic.png"));
-		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/roughness.png"));
-		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/ao.png"));
-
-		m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/color.png"));
-		m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/normal.png"));
-		m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/metallic.png"));
-		m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/roughness.png"));
-		m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/ao.png"));
-
-		// Bindings are set in shader directly
 		//m_PBRShader->SetUniform1i("baseColorMap", 3);
 		//m_PBRShader->SetUniform1i("normalMap", 4);
 		//m_PBRShader->SetUniform1i("metallicMap", 5);
 		//m_PBRShader->SetUniform1i("roughnessMap", 6);
 		//m_PBRShader->SetUniform1i("aoMap", 7);
+		m_PBRShader->SetUniform3f("u_Material.baseColor", 1.f, 1.f, 1.f);
+		m_PBRShader->SetUniform1f("u_Material.ao", 1.f);
+
+		m_ModelDefaultShader.reset(new Shader("res/shaders/WhiteColorWithLighting.shader"));
 
 		m_BackgroundVAO.reset(new VertexArray());
 		m_BackgroundVBO.reset(new VertexBuffer(backgroundVertices, 72 * sizeof(float)));
@@ -867,23 +848,105 @@ namespace test
 		Renderer renderer;
 		m_Proj = glm::perspective(glm::radians(s_FOV), WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.f);
 		m_View = glm::lookAt(m_CameraPos, m_CameraPos + m_CameraFront, m_CameraUp);
-		// Render spheres
+		// Bind pre-computed IBL data
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, m_BRDFLUTTexture);
+
+		m_PBRShader->Bind();
+		m_PBRShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+		m_PBRShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+		if (m_bUseModel)
 		{
-			// Bind pre-computed IBL data
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, m_BRDFLUTTexture);
+			if (m_Model)
+			{
+				if (m_bMotionOn)
+				{
+					m_ModelMotionRotation += m_ModelRotSpeed * deltaTime;
+					m_ModelMotionRotation = m_ModelMotionRotation > 360.f ? 0.f : m_ModelMotionRotation;
+				}
+				m_PointLightPositions = &m_PointLightPositions2;
+				m_PointLightColors = &m_PointLightColors2;
+				// Render PBR model
+				{
+					glm::mat4 model =
+						// Motion rotation
+						glm::rotate(glm::mat4(1.f), glm::radians(m_ModelMotionRotation), glm::vec3(0.f, 1.f, 0.f)) *
+						// Make Z point up to cater to user's habbits
+						glm::translate(glm::mat4(1.f), glm::vec3(m_ModelTranslation.x, m_ModelTranslation.z, m_ModelTranslation.y)) *
+						// TODO: change these to quaternions in the future
+						glm::rotate(glm::mat4(1.f), glm::radians(m_ModelRotation.x), glm::vec3(1.f, 0.f, 0.f)) *
+						glm::rotate(glm::mat4(1.f), glm::radians(m_ModelRotation.z), glm::vec3(0.f, 1.f, 0.f)) *
+						glm::rotate(glm::mat4(1.f), glm::radians(m_ModelRotation.y), glm::vec3(0.f, 0.f, 1.f)) *
+						glm::scale(glm::mat4(1.f), glm::vec3(m_ModelScale));
+
+					m_ModelDefaultShader->Bind();
+					m_ModelDefaultShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
+					m_ModelDefaultShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
+					m_ModelDefaultShader->SetUniformMat4f("u_Model", model);
+
+					m_PBRShader->Bind();
+					m_PBRShader->SetUniform1i("u_bUseTextures", true);
+					m_PBRShader->SetUniformMat4f("u_Model", model);
+
+					m_Model->Draw(*m_PBRShader, true, m_ModelDefaultShader);
+				}
+			}
+		}
+		// Render spheres
+		else
+		{
+			m_bFirstUseModel = true;
+
+			m_PointLightPositions = &m_PointLightPositions1;
+			m_PointLightColors = &m_PointLightColors1;
 
 			m_PBRShader->Bind();
 			m_PBRShader->SetUniform1i("u_bUseTextures", m_bUseTextures);
-			m_PBRShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-			m_PBRShader->SetUniform3f("u_ViewPos", m_CameraPos.x, m_CameraPos.y, m_CameraPos.z);
 			// Render spheres with textures
 			if (m_bUseTextures)
 			{
+				if (m_BaseColorTextures.size() == 0)
+				{
+					m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/color.png"));
+					m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/normal.png"));
+					m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/metallic.png"));
+					m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/roughness.png"));
+					m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/bamboo_wood/ao.png"));
+
+					m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/color.png"));
+					m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/normal.png"));
+					m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/metallic.png"));
+					m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/roughness.png"));
+					m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/ao.png"));
+
+					m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/color.png"));
+					m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/normal.png"));
+					m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/metallic.png"));
+					m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/roughness.png"));
+					m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/grass/ao.png"));
+
+					m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/color.png"));
+					m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/normal.png"));
+					m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/metallic.png"));
+					m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/roughness.png"));
+					m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/plastic/ao.png"));
+
+					m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/color.png"));
+					m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/normal.png"));
+					m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/metallic.png"));
+					m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/roughness.png"));
+					m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/rusted_iron/ao.png"));
+
+					m_BaseColorTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/color.png"));
+					m_NormalTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/normal.png"));
+					m_MetallicTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/metallic.png"));
+					m_RoughnessTextures.push_back(std::make_unique<Texture>("res/textures/PBR/wall/roughness.png"));
+					m_AOTextures.push_back(std::make_unique<Texture>("res/textures/PBR/gold/ao.png"));
+				}
 				for (unsigned int i = 0; i < m_BaseColorTextures.size(); ++i)
 				{
 					m_BaseColorTextures[i]->Bind(3);
@@ -902,6 +965,7 @@ namespace test
 			{
 				for (unsigned int row = 0; row < 7; ++row)
 				{
+					m_PBRShader->Bind();
 					m_PBRShader->SetUniform1f("u_Material.metallic", row / 7.f);
 					for (unsigned int col = 0; col < 7; ++col)
 					{
@@ -917,34 +981,53 @@ namespace test
 				}
 			}
 		}
-		// Render pointLights
-		if (true)
+		for (unsigned int i = 0; i < (*m_PointLightPositions).size(); ++i)
 		{
-			for (unsigned int i = 0; i < m_PointLightPositions.size(); ++i)
-			{
-				glm::vec3 newPos = m_PointLightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.f) * 5.f, 0.f, 0.f);
-				newPos = m_PointLightPositions[i];
-				m_PBRShader->Bind();
-				m_PBRShader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].position", newPos.x, newPos.y, newPos.z);
-				m_PBRShader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].color", m_PointLightColors[i].x, m_PointLightColors[i].y, m_PointLightColors[i].z);
+			glm::vec3 newPos = (*m_PointLightPositions)[i] + glm::vec3(sin(glfwGetTime() * 5.f) * 5.f, 0.f, 0.f);
+			newPos = (*m_PointLightPositions)[i];
 
+			m_ModelDefaultShader->Bind();
+			m_ModelDefaultShader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].position", newPos.x, newPos.y, newPos.z);
+
+			m_PBRShader->Bind();
+			m_PBRShader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].position", newPos.x, newPos.y, newPos.z);
+			m_PBRShader->SetUniform3f("u_PointLights[" + std::to_string(i) + "].color", (*m_PointLightColors)[i].x, (*m_PointLightColors)[i].y, (*m_PointLightColors)[i].z);
+
+			// Render pointLights
+			if (m_bRenderPointlights)
+			{
 				m_PointLightShader->Bind();
-				m_PointLightShader->SetUniformMat4f("u_ViewProjection", m_Proj * m_View);
-				glm::mat4 model_PointLight = glm::translate(glm::mat4(1.f), m_PointLightPositions[i]) *
+				m_PointLightShader->SetUniformMat4f("u_ViewProjection", m_Proj* m_View);
+				glm::mat4 model_PointLight = glm::translate(glm::mat4(1.f), (*m_PointLightPositions)[i]) *
 					glm::scale(glm::mat4(1.f), glm::vec3(0.2f));
 				m_PointLightShader->SetUniformMat4f("u_Model", model_PointLight);
-				m_PointLightShader->SetUniform4f("u_Color", m_PointLightColors[i].x, m_PointLightColors[i].y, m_PointLightColors[i].z, 1.f);
+				m_PointLightShader->SetUniform4f("u_Color", (*m_PointLightColors)[i].x, (*m_PointLightColors)[i].y, (*m_PointLightColors)[i].z, 1.f);
 
 				renderer.Draw(*m_VAO, *m_IBO, *m_PointLightShader);
 			}
-
+			
 		}
 		// Render background cubemap at last to prevent overdraw
 		{
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemap);
-			//glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap); // display irradiance map
-			//glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap); // display prefilter map
+			switch (m_BackgroundStyle)
+			{
+			case 1:
+				glBindTexture(GL_TEXTURE_CUBE_MAP, m_EnvCubemap);
+				break;
+			case 2:
+				// Display irradiance map
+				glBindTexture(GL_TEXTURE_CUBE_MAP, m_IrradianceMap);
+				break;
+			case 3:
+				// Display prefilter map
+				glBindTexture(GL_TEXTURE_CUBE_MAP, m_PrefilterMap);
+				break;
+			default:
+				ASSERT(false);
+				break;
+			}
+			
 			m_BackgroundShader->Bind();
 			m_BackgroundShader->SetUniformMat4f("u_View", m_View);
 			m_BackgroundShader->SetUniformMat4f("u_Projection", m_Proj);
@@ -969,7 +1052,151 @@ namespace test
 			ResetView();
 		}
 
-		ImGui::Checkbox(u8"使用材质", &m_bUseTextures);
+		ImGui::SliderInt(u8"背景样式", &m_BackgroundStyle, 1, 3);
+
+		ImGui::Checkbox(u8"绘制点光源", &m_bRenderPointlights);
+
+		if (ImGui::Checkbox(u8"展示PBR材质", &m_bUseTextures))
+		{
+			m_bUseModel = false;
+		}
+
+		if (ImGui::Checkbox(u8"展示PBR模型", &m_bUseModel))
+		{
+			m_bUseTextures = false;
+		}
+
+		if (m_bUseModel)
+		{
+			////////////////////////////////////////////////////////////
+			// Model Loading ///////////////////////////////////////////
+			////////////////////////////////////////////////////////////
+
+			if (m_bFirstUseModel || ImGui::CollapsingHeader(u8"模型"))
+			{
+				m_bFirstUseModel = false;
+
+				static std::string modelPath("res/meshes/PBR/AK47/AK47.fbx");
+				ImGui::InputText(u8"模型路径", &modelPath);
+				ImGui::Text(u8"注意！导入非PBR模型可能会出现渲染错误！");
+				if (!m_Model || ImGui::Button(u8"导入模型"))
+				{
+					if (!m_Model || m_Model->GetFullDir() != modelPath)
+					{
+						m_Model.reset(new Model(UTF8ToDefault(modelPath)));
+
+						m_BaseColorPaths.clear();
+						m_NormalPaths.clear();
+						m_MetallicPaths.clear();
+						m_RoughnessPaths.clear();
+						m_AOPaths.clear();
+
+						auto& meshes = m_Model->GetMeshes();
+						m_BaseColorPaths.resize(meshes.size(), "");
+						m_NormalPaths.resize(meshes.size(), "");
+						m_MetallicPaths.resize(meshes.size(), "");
+						m_RoughnessPaths.resize(meshes.size(), "");
+						m_AOPaths.resize(meshes.size(), "");
+						// Set loaded texture paths as default
+						for (unsigned int i = 0; i < meshes.size(); ++i)
+						{
+							auto& textures = meshes[i]->GetTextures();
+							for (const auto& texture : textures)
+							{
+								auto str = DefaultToUTF8(texture->GetFilePath());
+								switch (texture->GetType())
+								{
+								case TextureType::BaseColor:
+									m_BaseColorPaths[i] = str;
+									break;
+								case TextureType::Normal:
+									m_NormalPaths[i] = str;
+									break;
+								case TextureType::Metallic:
+									m_MetallicPaths[i] = str;
+									break;
+								case TextureType::Roughness:
+									m_RoughnessPaths[i] = str;
+									break;
+								case TextureType::AO:
+									m_AOPaths[i] = str;
+									break;
+								default:
+									ASSERT(false);
+									break;
+								}
+							}
+						}
+
+					}
+
+				}
+
+				ImGui::Checkbox(u8"观赏模式", &m_bMotionOn);
+				ImGui::SliderFloat(u8"运动速度", &m_ModelRotSpeed, 10.f, 360.f);
+
+				ImGui::InputFloat3(u8"平移", glm::value_ptr(m_ModelTranslation), "%.2f");
+				ImGui::InputFloat3(u8"旋转", glm::value_ptr(m_ModelRotation), "%.2f");
+				ImGui::InputFloat(u8"缩放", &m_ModelScale, 0.01f, 1.f, "%.2f");
+
+				//ImGui::Checkbox(u8"绘制法线", &m_bRenderModelNormals);
+			}
+
+			////////////////////////////////////////////////////////////
+			// Textures Loading ////////////////////////////////////////
+			////////////////////////////////////////////////////////////
+
+			if (m_Model && ImGui::CollapsingHeader(u8"贴图"))
+			{
+				auto& meshes = m_Model->GetMeshes();
+				for (unsigned int i = 0; i < meshes.size(); ++i)
+				{
+					const std::string& meshName = meshes[i]->GetName();
+					if (ImGui::CollapsingHeader((u8"网格：" + meshName).c_str()))
+					{
+						std::string baseColorText(u8"BaseColor贴图路径：");
+						ImGui::InputText((baseColorText + std::to_string(i)).c_str(), &m_BaseColorPaths[i]);
+						std::string baseColorButton(u8"导入BaseColor贴图: ");
+						if (ImGui::Button((baseColorButton + std::to_string(i)).c_str()))
+						{
+							meshes[i]->SetTexture(UTF8ToDefault(m_BaseColorPaths[i]), TextureType::BaseColor);
+						}
+
+						std::string normalText(u8"Normal贴图路径：");
+						ImGui::InputText((normalText + std::to_string(i)).c_str(), &m_NormalPaths[i]);
+						std::string normalButton(u8"导入Normal贴图: ");
+						if (ImGui::Button((normalButton + std::to_string(i)).c_str()))
+						{
+							meshes[i]->SetTexture(UTF8ToDefault(m_NormalPaths[i]), TextureType::Normal);
+						}
+
+						std::string metallicText(u8"Metallic贴图路径：");
+						ImGui::InputText((metallicText + std::to_string(i)).c_str(), &m_MetallicPaths[i]);
+						std::string metallicButton(u8"导入Metallic贴图: ");
+						if (ImGui::Button((metallicButton + std::to_string(i)).c_str()))
+						{
+							meshes[i]->SetTexture(UTF8ToDefault(m_MetallicPaths[i]), TextureType::Metallic);
+						}
+
+						std::string roughnessText(u8"Roughness贴图路径：");
+						ImGui::InputText((roughnessText + std::to_string(i)).c_str(), &m_RoughnessPaths[i]);
+						std::string roughnessButton(u8"导入Roughness贴图: ");
+						if (ImGui::Button((roughnessButton + std::to_string(i)).c_str()))
+						{
+							meshes[i]->SetTexture(UTF8ToDefault(m_RoughnessPaths[i]), TextureType::Roughness);
+						}
+
+						std::string aoText(u8"AO贴图路径：");
+						ImGui::InputText((aoText + std::to_string(i)).c_str(), &m_AOPaths[i]);
+						std::string aoButton(u8"导入AO贴图: ");
+						if (ImGui::Button((aoButton + std::to_string(i)).c_str()))
+						{
+							meshes[i]->SetTexture(UTF8ToDefault(m_AOPaths[i]), TextureType::AO);
+						}
+					}
+				}
+			}
+		}
 
 	}
 
@@ -1066,6 +1293,8 @@ namespace test
 		m_Yaw = DEFAULT_YAW;
 		m_Pitch = DEFAULT_PITCH;
 		s_FOV = DEFAULT_FOV;
+		m_bMotionOn = false;
+		m_ModelMotionRotation = 0.f;
 	}
 
 }

@@ -31,7 +31,10 @@ public:
 	inline const std::unique_ptr<VertexArray>& GetVAO() const { return m_VAO; }
 	inline const std::unique_ptr<IndexBuffer>& GetIBO() const { return m_IBO; }
 
+	/** Used for normal rendering (non-PBR). */
 	void Draw(const Shader& shader);
+	/** Used for PBR rendering. */
+	void DrawPBR(const Shader& shader, const std::unique_ptr<Shader>& defaultShader);
 
 	void SetTexture(const std::string& path, TextureType type);
 

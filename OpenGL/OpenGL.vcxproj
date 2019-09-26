@@ -150,6 +150,7 @@
     <None Include="res\shaders\PointLightingWithShadows.shader" />
     <None Include="res\shaders\Prefilter.shader" />
     <None Include="res\shaders\Skybox.shader" />
+    <None Include="res\shaders\WhiteColorWithLighting.shader" />
     <None Include="src\vendor\assimp\include\assimp\color4.inl" />
     <None Include="src\vendor\assimp\include\assimp\material.inl" />
     <None Include="src\vendor\assimp\include\assimp\matrix3x3.inl" />

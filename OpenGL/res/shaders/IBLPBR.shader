@@ -29,7 +29,7 @@ void main()
 #extension GL_ARB_shading_language_420pack : enable
 
 #define PI 3.14159265359
-#define NUM_POINTLIGHTS 4
+#define MAX_POINTLIGHTS 4
 #define MAX_REFLECTION_LOD 4.f
 
 in VS_OUT
@@ -58,13 +58,14 @@ struct PointLight
 uniform vec3 u_ViewPos;
 uniform bool u_bUseTextures;
 uniform Material u_Material;
-uniform PointLight u_PointLights[NUM_POINTLIGHTS];
+uniform PointLight u_PointLights[MAX_POINTLIGHTS];
 // IBL
 // Enable extension above and set bindings can solve this error:
 // Validation Error: Samplers of different types point to the same texture unit
 layout(binding = 0) uniform samplerCube u_IrradianceMap;
 layout(binding = 1) uniform samplerCube u_PrefilterMap;
 layout(binding = 2) uniform sampler2D u_BRDFLUT;
+
 layout(binding = 3) uniform sampler2D baseColorMap;
 layout(binding = 4) uniform sampler2D normalMap;
 layout(binding = 5) uniform sampler2D metallicMap;
@@ -90,13 +91,13 @@ void main()
 	vec3 R = reflect(-V, N);
 
 	// Calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-	// of 0.04 and if it's a metal, use the baseColor color as F0 (metallic workflow)    
+	// of 0.04 and if it's a metal, use the baseColor color as F0 (metallic workflow)
 	vec3 F0 = vec3(0.04f);
 	F0 = mix(F0, baseColor, metallic);
 
 	// Reflectance equation
 	vec3 Lo = vec3(0.f);
-	for (int i = 0; i < NUM_POINTLIGHTS; ++i)
+	for (int i = 0; i < MAX_POINTLIGHTS; ++i)
 	{
 		// Calculate per-light radiance
 		vec3 L = normalize(u_PointLights[i].position - fs_in.v_WorldPos);

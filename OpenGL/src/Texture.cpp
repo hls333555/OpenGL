@@ -32,6 +32,7 @@ void Texture::LoadTexture(const std::string& filePath, bool bFlipOnLoad)
 	// Typically, when png image is being loaded, it is stored in scanlines from the top to the bottom of the image, so we need to flip it on load
 	stbi_set_flip_vertically_on_load(bFlipOnLoad);
 	m_LocalBuffer = stbi_load(filePath.c_str(), &m_Width, &m_Height, &m_BPP, 4/*RGBA*/);
+	m_bSuccess = m_LocalBuffer != nullptr;
 
 	// Generate texture names
 	GLCALL(glGenTextures(1, &m_RendererID));

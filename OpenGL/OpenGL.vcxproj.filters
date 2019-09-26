@@ -568,6 +568,7 @@
     <None Include="res\shaders\PBRBackground.shader" />
     <None Include="res\shaders\Prefilter.shader" />
     <None Include="res\shaders\BRDF.shader" />
+    <None Include="res\shaders\WhiteColorWithLighting.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">

@@ -8,15 +8,26 @@
 #include "Texture.h"
 
 Model::Model(const std::string& filePath)
+	: m_FullDir(filePath)
 {
 	LoadModel(filePath);
 }
 
-void Model::Draw(const Shader& shader)
+void Model::Draw(const Shader& shader, bool bPBR, const std::unique_ptr<Shader>& defaultShader)
 {
-	for (auto& mesh : m_Meshes)
+	if (bPBR)
 	{
-		mesh->Draw(shader);
+		for (auto& mesh : m_Meshes)
+		{
+			mesh->DrawPBR(shader, defaultShader);
+		}
+	}
+	else
+	{
+		for (auto& mesh : m_Meshes)
+		{
+			mesh->Draw(shader);
+		}
 	}
 }
 
@@ -68,7 +79,7 @@ std::unique_ptr<Mesh> Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		glm::vec3 pos(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 		vertex.position = pos;
 
-		// Process normals and texture coordinates
+		// Process normals
 		glm::vec3 normal(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 		vertex.normal = normal;
 
@@ -100,10 +111,13 @@ std::unique_ptr<Mesh> Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-		auto diffuseTextures = LoadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Diffuse);
+		auto diffuseTextures = LoadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::BaseColor);
 		textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
-		auto specularTextures = LoadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::Specular);
-		textures.insert(textures.end(), specularTextures.begin(), specularTextures.end());
+		// TODO: Normal textures are identified as aiTextureType_NORMALS for fbx files, but aiTextureType_HEIGHT for obj files
+		auto normalTextures = LoadMaterialTextures(material, aiTextureType_NORMALS, TextureType::Normal);
+		textures.insert(textures.end(), normalTextures.begin(), normalTextures.end());
+		auto shininessTextures = LoadMaterialTextures(material, aiTextureType_SHININESS, TextureType::Roughness);
+		textures.insert(textures.end(), shininessTextures.begin(), shininessTextures.end());
 	}
 
 	return std::make_unique<Mesh>(this, mesh->mName.C_Str(), vertices, indices, textures);
@@ -119,24 +133,50 @@ std::vector<std::shared_ptr<Texture>> Model::LoadMaterialTextures(aiMaterial* ma
 
 		auto str = UTF8ToDefault(std::string(aiStr.C_Str()));
 
-		bool bSkip = false;
-		for (const auto& loadedTexture : m_LoadedTextures)
+		LoadTextureFromDisk(str, textures, texType);
+
+		// WORKAROUND: The renderer will try to find the related metallic and ao textures according to basecolor texture's naming convention
+		// e.g:
+		// ../res/meshes/PBR/AK47/textures/T_AK47_basecolor.TGA
+		// ../res/meshes/PBR/AK47/textures/T_AK47_metallic.TGA
+		// ../res/meshes/PBR/AK47/textures/T_AK47_ao.TGA
+		if (texType == TextureType::BaseColor)
 		{
-			// If current processed texture is already loaded, skip loading...
-			if (loadedTexture->GetFilePath().c_str() == m_Dir + str)
-			{
-				textures.push_back(loadedTexture);
-				bSkip = true;
-				break;
-			}
-		}
-		if (!bSkip)
-		{
-			std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_Dir, str, texType);
-			textures.push_back(texture);
-			m_LoadedTextures.push_back(texture);
+			auto pos = str.rfind("_");
+			auto pos2 = str.rfind(".");
+			str = str.substr(0, pos + 1) + "metallic" + str.substr(pos2, str.size() - pos);
+			LoadTextureFromDisk(str, textures, TextureType::Metallic);
+
+			pos = str.rfind("_");
+			pos2 = str.rfind(".");
+			str = str.substr(0, pos + 1) + "ao" + str.substr(pos2, str.size() - pos);
+			LoadTextureFromDisk(str, textures, TextureType::AO);
 		}
 	}
 	
 	return textures;
+}
+
+void Model::LoadTextureFromDisk(const std::string& str, std::vector<std::shared_ptr<Texture>>& textures, TextureType texType)
+{
+	bool bSkip = false;
+	for (const auto& loadedTexture : m_LoadedTextures)
+	{
+		// If current processed texture is already loaded, skip loading...
+		if (loadedTexture->GetFilePath() == m_Dir + str)
+		{
+			textures.push_back(loadedTexture);
+			bSkip = true;
+			break;
+		}
+	}
+	if (!bSkip)
+	{
+		std::shared_ptr<Texture> texture = std::make_shared<Texture>(m_Dir, str, texType);
+		if (texture->GetLoadResult())
+		{
+			textures.push_back(texture);
+			m_LoadedTextures.push_back(texture);
+		}
+	}
 }
